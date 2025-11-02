@@ -1,3 +1,31 @@
+# Top-level ignores
+.DS_Store
+node_modules/
+venv/
+env/
+*.pyc
+__pycache__/
+.env
+.env.*
+
+# Ignore large model caches and transformers/sentence-transformers caches
+mira-ai/mira-agent/.cache/
+mira-ai/mira-agent/.cache/**
+
+# Model artifacts and checkpoints
+**/blobs/
+**/*.incomplete
+
+# Logs
+logs/
+*.log
+
+# OS files
+.vscode/
+.idea/
+
+# Docker
+*.tar
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
