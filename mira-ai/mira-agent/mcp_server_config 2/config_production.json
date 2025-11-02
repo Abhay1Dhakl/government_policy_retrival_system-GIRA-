@@ -1,0 +1,9 @@
+
+{
+  "mcpServers": {
+    "mcp_server": {
+      "url": "http://mira-mcp-server:8001/sse",
+      "transport": "sse"
+    }
+  }
+}

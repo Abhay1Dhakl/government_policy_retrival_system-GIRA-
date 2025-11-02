@@ -1,0 +1,117 @@
+version: "3.8"
+
+services:
+  mira_db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py makemigrations && 
+             python manage.py migrate && 
+             python manage.py collectstatic --noinput && 
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "${DJANGO_PORT}:8000"
+    depends_on:
+      mira_db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  tailwind:
+    build:
+      context: .
+      dockerfile: Dockerfile.tailwind
+    volumes:
+      - .:/app
+    depends_on:
+      - web
+
+  celery:
+    build: .
+    command: celery -A mira worker --loglevel=info
+    env_file:
+        - ./.env
+    environment:
+      - PYTHONPATH=/app/src
+    depends_on:
+        - mira_db
+        - redis
+
+  celery-beat:
+      build: .
+      command: celery -A mira beat --loglevel=info
+      env_file:
+          - ./.env
+      environment:
+        - PYTHONPATH=/app/src
+      depends_on:
+          - mira_db
+          - redis
+
+  redis:
+      image: redis:alpine
+      restart: always
+      ports:
+          - "127.0.0.1:${REDIS_PORT}:6379"
+      volumes:
+          - ./redis.conf:/usr/local/etc/redis/redis.conf
+      command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  minio:
+    image: minio/minio:latest
+    container_name: mira-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_DOMAIN: ${MINIO_DOMAIN:-localhost}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO Client (for bucket initialization)
+  minio-init:
+    image: minio/mc:latest
+    container_name: mira-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO to be ready...';
+      sleep 10;
+      /usr/bin/mc alias set minio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      /usr/bin/mc mb minio/medical-documents --ignore-existing;
+      /usr/bin/mc mb minio/highlighted-pdfs --ignore-existing;
+      /usr/bin/mc policy set public minio/medical-documents;
+      /usr/bin/mc policy set public minio/highlighted-pdfs;
+      echo 'MinIO buckets created and configured successfully';
+      "
+
+volumes:
+  postgres_data:
+  minio_data:

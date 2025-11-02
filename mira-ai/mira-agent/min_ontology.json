@@ -1,0 +1,865 @@
+{
+    "drugs": [
+        {
+            "name": "azithromycin",
+            "synonyms": [
+                "zithromax",
+                "z-pak",
+                "azithrocin",
+                "zmax"
+            ]
+        },
+        {
+            "name": "amoxicillin",
+            "synonyms": [
+                "amoxil",
+                "trimox",
+                "moxatag",
+                "larotid"
+            ]
+        },
+        {
+            "name": "clarithromycin",
+            "synonyms": [
+                "biaxin",
+                "biaxin xl"
+            ]
+        },
+        {
+            "name": "erythromycin",
+            "synonyms": [
+                "ery-tab",
+                "eryc",
+                "eryped",
+                "pcs"
+            ]
+        },
+        {
+            "name": "ciprofloxacin",
+            "synonyms": [
+                "cipro",
+                "ciloxan",
+                "proquin"
+            ]
+        },
+        {
+            "name": "levofloxacin",
+            "synonyms": [
+                "levaquin"
+            ]
+        },
+        {
+            "name": "doxycycline",
+            "synonyms": [
+                "doryx",
+                "vibramycin",
+                "monodox",
+                "oracea"
+            ]
+        },
+        {
+            "name": "metronidazole",
+            "synonyms": [
+                "flagyl",
+                "metrogel"
+            ]
+        },
+        {
+            "name": "fluconazole",
+            "synonyms": [
+                "diflucan"
+            ]
+        },
+        {
+            "name": "acyclovir",
+            "synonyms": [
+                "zovirax"
+            ]
+        },
+        {
+            "name": "valacyclovir",
+            "synonyms": [
+                "valtrex"
+            ]
+        },
+        {
+            "name": "oseltamivir",
+            "synonyms": [
+                "tamiflu"
+            ]
+        },
+        {
+            "name": "ibuprofen",
+            "synonyms": [
+                "advil",
+                "motrin",
+                "nuprin"
+            ]
+        },
+        {
+            "name": "acetaminophen",
+            "synonyms": [
+                "tylenol",
+                "paracetamol"
+            ]
+        },
+        {
+            "name": "aspirin",
+            "synonyms": [
+                "acetylsalicylic acid",
+                "asa"
+            ]
+        },
+        {
+            "name": "warfarin",
+            "synonyms": [
+                "coumadin",
+                "jantoven"
+            ]
+        },
+        {
+            "name": "heparin",
+            "synonyms": [
+                "unfractionated heparin"
+            ]
+        },
+        {
+            "name": "enoxaparin",
+            "synonyms": [
+                "lovenox"
+            ]
+        },
+        {
+            "name": "atorvastatin",
+            "synonyms": [
+                "lipitor"
+            ]
+        },
+        {
+            "name": "simvastatin",
+            "synonyms": [
+                "zocor"
+            ]
+        },
+        {
+            "name": "metformin",
+            "synonyms": [
+                "glucophage",
+                "fortamet"
+            ]
+        },
+        {
+            "name": "insulin",
+            "synonyms": [
+                "humalog",
+                "novolog",
+                "lantus"
+            ]
+        },
+        {
+            "name": "lisinopril",
+            "synonyms": [
+                "prinivil",
+                "zestril"
+            ]
+        },
+        {
+            "name": "amlodipine",
+            "synonyms": [
+                "norvasc"
+            ]
+        },
+        {
+            "name": "hydrochlorothiazide",
+            "synonyms": [
+                "microzide",
+                "hydrodiuril"
+            ]
+        },
+        {
+            "name": "furosemide",
+            "synonyms": [
+                "lasix"
+            ]
+        },
+        {
+            "name": "prednisone",
+            "synonyms": [
+                "deltasone",
+                "sterapred"
+            ]
+        },
+        {
+            "name": "methylprednisolone",
+            "synonyms": [
+                "medrol",
+                "solu-medrol"
+            ]
+        },
+        {
+            "name": "dexamethasone",
+            "synonyms": [
+                "decadron"
+            ]
+        },
+        {
+            "name": "albuterol",
+            "synonyms": [
+                "ventolin",
+                "proair",
+                "proventil"
+            ]
+        },
+        {
+            "name": "fluticasone",
+            "synonyms": [
+                "flonase",
+                "flovent"
+            ]
+        },
+        {
+            "name": "montelukast",
+            "synonyms": [
+                "singulair"
+            ]
+        },
+        {
+            "name": "cetirizine",
+            "synonyms": [
+                "zyrtec"
+            ]
+        },
+        {
+            "name": "loratadine",
+            "synonyms": [
+                "claritin"
+            ]
+        },
+        {
+            "name": "diphenhydramine",
+            "synonyms": [
+                "benadryl"
+            ]
+        },
+        {
+            "name": "ranitidine",
+            "synonyms": [
+                "zantac"
+            ]
+        },
+        {
+            "name": "omeprazole",
+            "synonyms": [
+                "prilosec"
+            ]
+        },
+        {
+            "name": "pantoprazole",
+            "synonyms": [
+                "protonix"
+            ]
+        },
+        {
+            "name": "ondansetron",
+            "synonyms": [
+                "zofran"
+            ]
+        },
+        {
+            "name": "morphine",
+            "synonyms": [
+                "ms contin",
+                "kadian"
+            ]
+        },
+        {
+            "name": "oxycodone",
+            "synonyms": [
+                "oxycontin",
+                "roxicodone"
+            ]
+        },
+        {
+            "name": "hydrocodone",
+            "synonyms": [
+                "vicodin",
+                "lorcet"
+            ]
+        },
+        {
+            "name": "tramadol",
+            "synonyms": [
+                "ultram"
+            ]
+        }
+    ],
+    "adverse_events": [
+        {
+            "name": "qt prolongation",
+            "synonyms": [
+                "qtc prolongation",
+                "qt interval prolongation",
+                "qtc interval prolongation",
+                "torsades de pointes",
+                "arrhythmia",
+                "cardiac arrhythmia",
+                "ventricular arrhythmia",
+                "atrial fibrillation",
+                "supraventricular tachycardia",
+                "bradycardia",
+                "tachycardia"
+            ]
+        },
+        {
+            "name": "cardiac toxicity",
+            "synonyms": [
+                "cardiotoxicity",
+                "cardiac effects",
+                "heart toxicity",
+                "myocardial toxicity",
+                "cardiomyopathy",
+                "heart failure",
+                "cardiac arrest",
+                "myocardial infarction"
+            ]
+        },
+        {
+            "name": "hepatotoxicity",
+            "synonyms": [
+                "liver toxicity",
+                "hepatic toxicity",
+                "liver damage",
+                "hepatitis",
+                "jaundice",
+                "elevated liver enzymes",
+                "transaminitis",
+                "drug-induced liver injury",
+                "dili"
+            ]
+        },
+        {
+            "name": "nephrotoxicity",
+            "synonyms": [
+                "kidney toxicity",
+                "renal toxicity",
+                "kidney damage",
+                "renal failure",
+                "acute kidney injury",
+                "chronic kidney disease",
+                "elevated creatinine"
+            ]
+        },
+        {
+            "name": "neurotoxicity",
+            "synonyms": [
+                "neurological toxicity",
+                "nervous system toxicity",
+                "peripheral neuropathy",
+                "seizures",
+                "encephalopathy",
+                "confusion",
+                "dizziness",
+                "headache"
+            ]
+        },
+        {
+            "name": "gastrointestinal toxicity",
+            "synonyms": [
+                "gi toxicity",
+                "nausea",
+                "vomiting",
+                "diarrhea",
+                "constipation",
+                "abdominal pain",
+                "gastritis",
+                "gastroenteritis"
+            ]
+        },
+        {
+            "name": "hematologic toxicity",
+            "synonyms": [
+                "blood toxicity",
+                "anemia",
+                "thrombocytopenia",
+                "leukopenia",
+                "neutropenia",
+                "pancytopenia",
+                "bleeding",
+                "bruising"
+            ]
+        },
+        {
+            "name": "cutaneous toxicity",
+            "synonyms": [
+                "skin toxicity",
+                "rash",
+                "dermatitis",
+                "erythema",
+                "pruritus",
+                "urticaria",
+                "stevens-johnson syndrome",
+                "toxic epidermal necrolysis"
+            ]
+        },
+        {
+            "name": "hypersensitivity",
+            "synonyms": [
+                "allergic reaction",
+                "anaphylaxis",
+                "angioedema",
+                "hypersensitivity reaction",
+                "drug allergy"
+            ]
+        },
+        {
+            "name": "ototoxicity",
+            "synonyms": [
+                "ear toxicity",
+                "hearing loss",
+                "tinnitus",
+                "vestibular toxicity",
+                "dizziness"
+            ]
+        },
+        {
+            "name": "ocular toxicity",
+            "synonyms": [
+                "eye toxicity",
+                "vision changes",
+                "retinopathy",
+                "optic neuropathy",
+                "blurred vision"
+            ]
+        },
+        {
+            "name": "teratogenicity",
+            "synonyms": [
+                "birth defects",
+                "fetal toxicity",
+                "embryotoxicity",
+                "developmental toxicity"
+            ]
+        },
+        {
+            "name": "carcinogenicity",
+            "synonyms": [
+                "cancer risk",
+                "tumorigenicity",
+                "mutagenicity",
+                "carcinogenic potential"
+            ]
+        },
+        {
+            "name": "drug interactions",
+            "synonyms": [
+                "drug-drug interactions",
+                "pharmacokinetic interactions",
+                "pharmacodynamic interactions",
+                "interaction potential"
+            ]
+        },
+        {
+            "name": "overdose",
+            "synonyms": [
+                "toxicity",
+                "poisoning",
+                "acute overdose",
+                "chronic overdose",
+                "drug overdose"
+            ]
+        }
+    ],
+    "medical_conditions": [
+        {
+            "name": "pneumonia",
+            "synonyms": [
+                "lung infection",
+                "pulmonary infection",
+                "pneumonitis",
+                "bronchopneumonia",
+                "lobar pneumonia"
+            ]
+        },
+        {
+            "name": "urinary tract infection",
+            "synonyms": [
+                "uti",
+                "bladder infection",
+                "cystitis",
+                "pyelonephritis",
+                "kidney infection"
+            ]
+        },
+        {
+            "name": "skin infection",
+            "synonyms": [
+                "cellulitis",
+                "impetigo",
+                "abscess",
+                "wound infection",
+                "folliculitis"
+            ]
+        },
+        {
+            "name": "otitis media",
+            "synonyms": [
+                "ear infection",
+                "middle ear infection",
+                "acute otitis media",
+                "chronic otitis media"
+            ]
+        },
+        {
+            "name": "pharyngitis",
+            "synonyms": [
+                "sore throat",
+                "strep throat",
+                "tonsillitis",
+                "pharyngotonsillitis"
+            ]
+        },
+        {
+            "name": "sinusitis",
+            "synonyms": [
+                "sinus infection",
+                "acute sinusitis",
+                "chronic sinusitis",
+                "maxillary sinusitis"
+            ]
+        },
+        {
+            "name": "bronchitis",
+            "synonyms": [
+                "acute bronchitis",
+                "chronic bronchitis",
+                "chest infection"
+            ]
+        },
+        {
+            "name": "gastroenteritis",
+            "synonyms": [
+                "stomach flu",
+                "food poisoning",
+                "infectious diarrhea",
+                "viral gastroenteritis"
+            ]
+        },
+        {
+            "name": "sexually transmitted infection",
+            "synonyms": [
+                "sti",
+                "std",
+                "chlamydia",
+                "gonorrhea",
+                "syphilis",
+                "herpes"
+            ]
+        },
+        {
+            "name": "hypertension",
+            "synonyms": [
+                "high blood pressure",
+                "elevated blood pressure",
+                "essential hypertension"
+            ]
+        },
+        {
+            "name": "diabetes mellitus",
+            "synonyms": [
+                "diabetes",
+                "type 1 diabetes",
+                "type 2 diabetes",
+                "insulin dependent diabetes",
+                "non-insulin dependent diabetes"
+            ]
+        },
+        {
+            "name": "hyperlipidemia",
+            "synonyms": [
+                "high cholesterol",
+                "dyslipidemia",
+                "elevated lipids",
+                "hypercholesterolemia"
+            ]
+        },
+        {
+            "name": "asthma",
+            "synonyms": [
+                "bronchial asthma",
+                "allergic asthma",
+                "exercise-induced asthma"
+            ]
+        },
+        {
+            "name": "chronic obstructive pulmonary disease",
+            "synonyms": [
+                "copd",
+                "emphysema",
+                "chronic bronchitis",
+                "bronchiectasis"
+            ]
+        },
+        {
+            "name": "gastroesophageal reflux disease",
+            "synonyms": [
+                "gerd",
+                "acid reflux",
+                "heartburn",
+                "reflux esophagitis"
+            ]
+        },
+        {
+            "name": "peptic ulcer disease",
+            "synonyms": [
+                "pud",
+                "gastric ulcer",
+                "duodenal ulcer",
+                "stomach ulcer"
+            ]
+        },
+        {
+            "name": "inflammatory bowel disease",
+            "synonyms": [
+                "ibd",
+                "crohn's disease",
+                "ulcerative colitis",
+                "colitis"
+            ]
+        },
+        {
+            "name": "rheumatoid arthritis",
+            "synonyms": [
+                "ra",
+                "rheumatism",
+                "autoimmune arthritis"
+            ]
+        },
+        {
+            "name": "osteoarthritis",
+            "synonyms": [
+                "oa",
+                "degenerative arthritis",
+                "wear and tear arthritis"
+            ]
+        },
+        {
+            "name": "depression",
+            "synonyms": [
+                "major depressive disorder",
+                "clinical depression",
+                "unipolar depression"
+            ]
+        },
+        {
+            "name": "anxiety disorder",
+            "synonyms": [
+                "anxiety",
+                "generalized anxiety disorder",
+                "gad",
+                "panic disorder"
+            ]
+        },
+        {
+            "name": "epilepsy",
+            "synonyms": [
+                "seizure disorder",
+                "convulsive disorder",
+                "epileptic seizures"
+            ]
+        },
+        {
+            "name": "migraine",
+            "synonyms": [
+                "migraine headache",
+                "vascular headache",
+                "classic migraine"
+            ]
+        },
+        {
+            "name": "osteoporosis",
+            "synonyms": [
+                "bone loss",
+                "brittle bones",
+                "low bone density"
+            ]
+        },
+        {
+            "name": "chronic kidney disease",
+            "synonyms": [
+                "ckd",
+                "renal insufficiency",
+                "kidney failure",
+                "end stage renal disease"
+            ]
+        },
+        {
+            "name": "liver cirrhosis",
+            "synonyms": [
+                "cirrhosis",
+                "liver fibrosis",
+                "hepatic cirrhosis"
+            ]
+        },
+        {
+            "name": "congestive heart failure",
+            "synonyms": [
+                "chf",
+                "heart failure",
+                "cardiac failure",
+                "left ventricular failure"
+            ]
+        },
+        {
+            "name": "coronary artery disease",
+            "synonyms": [
+                "cad",
+                "coronary heart disease",
+                "ischemic heart disease",
+                "atherosclerosis"
+            ]
+        },
+        {
+            "name": "atrial fibrillation",
+            "synonyms": [
+                "afib",
+                "af",
+                "irregular heartbeat",
+                "atrial arrhythmia"
+            ]
+        },
+        {
+            "name": "deep vein thrombosis",
+            "synonyms": [
+                "dvt",
+                "venous thrombosis",
+                "blood clot",
+                "pulmonary embolism"
+            ]
+        },
+        {
+            "name": "stroke",
+            "synonyms": [
+                "cerebrovascular accident",
+                "cva",
+                "brain attack",
+                "ischemic stroke",
+                "hemorrhagic stroke"
+            ]
+        },
+        {
+            "name": "chronic pain",
+            "synonyms": [
+                "persistent pain",
+                "long-term pain",
+                "chronic pain syndrome"
+            ]
+        },
+        {
+            "name": "fibromyalgia",
+            "synonyms": [
+                "fibrositis",
+                "chronic fatigue syndrome"
+            ]
+        }
+    ],
+    "procedures": [
+        {
+            "name": "electrocardiogram",
+            "synonyms": [
+                "ecg",
+                "ekg",
+                "cardiac monitoring",
+                "heart monitoring",
+                "cardiac telemetry"
+            ]
+        },
+        {
+            "name": "echocardiogram",
+            "synonyms": [
+                "echo",
+                "cardiac ultrasound",
+                "heart ultrasound"
+            ]
+        },
+        {
+            "name": "chest x-ray",
+            "synonyms": [
+                "cxr",
+                "chest radiograph",
+                "pulmonary x-ray"
+            ]
+        },
+        {
+            "name": "computed tomography",
+            "synonyms": [
+                "ct scan",
+                "cat scan",
+                "computed axial tomography"
+            ]
+        },
+        {
+            "name": "magnetic resonance imaging",
+            "synonyms": [
+                "mri",
+                "nmr",
+                "nuclear magnetic resonance"
+            ]
+        },
+        {
+            "name": "endoscopy",
+            "synonyms": [
+                "upper endoscopy",
+                "eg d",
+                "esophagogastroduodenoscopy",
+                "colonoscopy"
+            ]
+        },
+        {
+            "name": "biopsy",
+            "synonyms": [
+                "tissue biopsy",
+                "needle biopsy",
+                "surgical biopsy"
+            ]
+        },
+        {
+            "name": "blood tests",
+            "synonyms": [
+                "laboratory tests",
+                "blood work",
+                "serum tests",
+                "chemistry panel"
+            ]
+        },
+        {
+            "name": "liver function tests",
+            "synonyms": [
+                "lft",
+                "hepatic panel",
+                "liver enzymes",
+                "alt",
+                "ast",
+                "bilirubin"
+            ]
+        },
+        {
+            "name": "renal function tests",
+            "synonyms": [
+                "kidney function tests",
+                "creatinine",
+                "bun",
+                "glomerular filtration rate",
+                "gfr"
+            ]
+        },
+        {
+            "name": "cardiac enzymes",
+            "synonyms": [
+                "troponin",
+                "ck-mb",
+                "cardiac biomarkers",
+                "myocardial markers"
+            ]
+        }
+    ]
+}

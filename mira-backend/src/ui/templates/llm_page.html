@@ -1,0 +1,90 @@
+{% extends "ui/base.html" %}
+{% block title %}LLMs - MIRA Admin{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6">LLMs</h2>
+
+<form method="post" class="mb-6">
+    {% csrf_token %}
+    <div class="grid grid-cols-3 gap-2">
+        <select id="llm-name" name="name" required class="border rounded px-3 py-2">
+            <option value="">Select LLM Name</option>
+            {% for name in llm_name_choices %}
+            <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+
+        <select id="llm-model" name="model" required class="border rounded px-3 py-2">
+            <option value="">Select Model</option>
+        </select>
+
+        <input type="text" name="api_key" placeholder="API Key" class="border rounded px-3 py-2" />
+    </div>
+
+    <button type="submit" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Add LLM
+    </button>
+</form>
+
+<table class="w-full border-collapse bg-white shadow rounded">
+    <thead>
+        <tr class="bg-gray-200 text-left">
+            <th class="p-3">S.N</th>
+            <th class="p-3">Name</th>
+            <th class="p-3">Model</th>
+            <th class="p-3">API Key</th>
+            <th class="p-3">Created At</th>
+            <th class="p-3 text-center">Active</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for llm in llms %}
+        <tr class="border-t">
+            <td class="p-3">{{ forloop.counter }}</td>
+            <td class="p-3">{{ llm.name }}</td>
+            <td class="p-3">{{ llm.model }}</td>
+            <td class="p-3">
+                {% if llm.api_key %}
+                ********{{ llm.api_key|slice:"-4:" }}
+                {% else %}
+                -
+                {% endif %}
+            </td>
+            <td class="p-3">{{ llm.created_at|date:"Y-m-d H:i" }}</td>
+            <td class="p-3 text-center">
+                {% if llm.is_active %}
+                <span class="text-green-600 font-semibold">Active</span>
+                {% else %}
+                <a href="?activate={{ llm.id }}"
+                    class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">Activate</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="p-3 text-center text-gray-500">No LLMs added yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    const llmConstants = {{ llm_constants_json| safe }};
+
+    const llmNameSelect = document.getElementById("llm-name");
+    const llmModelSelect = document.getElementById("llm-model");
+
+    llmNameSelect.addEventListener("change", function () {
+        const selectedName = this.value;
+        const models = llmConstants[selectedName] || [];
+        llmModelSelect.innerHTML = '<option value="">Select Model</option>';
+
+        models.forEach(model => {
+            const option = document.createElement("option");
+            option.value = model;
+            option.textContent = model;
+            llmModelSelect.appendChild(option);
+        });
+    });
+</script>
+{% endblock %}

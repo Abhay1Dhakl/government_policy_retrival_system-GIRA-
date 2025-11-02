@@ -1,0 +1,26 @@
+uvicorn
+requests
+fastapi
+pinecone
+scikit-learn
+python-dotenv
+PyJWT
+sqlalchemy
+presidio_analyzer
+PyMuPDF
+minio
+python-docx
+pdfplumber
+camelot-py
+python-multipart
+nltk
+openai
+anthropic
+psycopg2-binary
+spacy
+numpy
+# Google Gemini for embeddings (replaces sentence_transformers)
+google-generativeai>=0.3.0
+# MCP Integration (using official SDK - no langchain!)
+mcp>=1.19.0
+httpx  # Required for MCP SSE transport

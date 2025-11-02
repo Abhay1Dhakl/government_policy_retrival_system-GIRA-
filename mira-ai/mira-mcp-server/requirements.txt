@@ -1,0 +1,14 @@
+fastmcp
+numpy
+pytest 
+protobuf 
+google-cloud-core
+pinecone
+grpcio
+pinecone-text
+rank-bm25
+scikit-learn>=1.0.0
+regex
+# Google Gemini for embeddings (replaces sentence-transformers and torch)
+google-generativeai>=0.3.0
+sentence-transformers>=2.2.0

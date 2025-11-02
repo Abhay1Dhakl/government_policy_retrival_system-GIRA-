@@ -1,0 +1,492 @@
+x-airflow-common: &airflow-common
+  build:
+    context: ./mira-ai/mira-agent/airflow
+    dockerfile: Dockerfile
+  user: "${AIRFLOW_UID:-50000}:0"
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    # Add connection pool settings for better reliability
+    AIRFLOW__DATABASE__SQL_ENGINE_ENCODING: utf-8
+    AIRFLOW__DATABASE__SQL_ENGINE_POOL_SIZE: 5
+    AIRFLOW__DATABASE__SQL_ENGINE_POOL_TIMEOUT: 20
+    AIRFLOW__DATABASE__SQL_ENGINE_POOL_RECYCLE: -1
+    # Set Airflow home directory explicitly
+    AIRFLOW_HOME: /opt/airflow
+  volumes:
+    - ${AIRFLOW_PROJ_DIR:-.}/mira-ai/mira-agent/airflow/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/mira-ai/mira-agent/airflow/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/mira-ai/mira-agent/airflow/plugins:/opt/airflow/plugins
+    - ./mira-ai/mira-agent:/opt/airflow/mira_agent
+  networks:
+    - mira-network
+  depends_on: &airflow-common-depends-on
+    redis:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+
+services:
+  # PostgreSQL Database for main application and Airflow
+  postgres:
+    image: postgres:16-alpine
+    container_name: mira-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --auth-host=scram-sha-256"
+      # SECURITY: Enable proper authentication
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      # SECURITY: Only bind to localhost
+      - "127.0.0.1:${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    # Configuration with SSL disabled for development
+    command:
+      [
+        "postgres",
+        "-c",
+        "ssl=off",
+        "-c",
+        "password_encryption=scram-sha-256",
+        "-c",
+        "logging_collector=on",
+        "-c",
+        "log_statement=all",
+        "-c",
+        "log_connections=on",
+      ]
+    networks:
+      - mira-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2GB
+        reservations:
+          cpus: "0.5"
+          memory: 512MB
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:unconfined
+    # PostgreSQL container manages its own user permissions internally
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: "10s"
+      timeout: "5s"
+      retries: 3
+      start_period: "30s"
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: mira-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      # MINIO_BROWSER_REDIRECT_URL: https://mira.medgentics.com/minio
+      # MINIO_SERVER_URL: https://mira.medgentics.com/minio
+      MINIO_DOMAIN: ${MINIO_DOMAIN:-localhost}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - mira-network
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO Client (for bucket initialization)
+  minio-init:
+    image: minio/mc:latest
+    container_name: mira-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - mira-network
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO to be ready...';
+      sleep 10;
+      /usr/bin/mc alias set minio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      /usr/bin/mc mb minio/medical-documents --ignore-existing;
+      /usr/bin/mc mb minio/highlighted-pdfs --ignore-existing;
+      /usr/bin/mc policy set public minio/medical-documents;
+      /usr/bin/mc policy set public minio/highlighted-pdfs;
+      echo 'MinIO buckets created and configured successfully';
+      "
+
+  # MIRA AI Agent Service
+  mira-agent:
+    build:
+      context: ./mira-ai/mira-agent
+      dockerfile: Dockerfile
+    container_name: mira-agent-backup
+    environment:
+      - FERNET_KEY=${FERNET_KEY}
+      - DATABASE_URL=${DATABASE_URL_PROD}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - TOKENIZERS_PARALLELISM=${TOKENIZERS_PARALLELISM}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - MCP_SERVER_URL_DEV=${MCP_SERVER_URL_DEV}
+      - MCP_SERVER_URL_PROD=${MCP_SERVER_URL_PROD}
+      - MCP_SERVER_TRANSPORT=${MCP_SERVER_TRANSPORT}
+      - CORS_ORIGINS_DEV=${CORS_ORIGINS_DEV}
+      - CORS_ORIGINS_PROD=${CORS_ORIGINS_PROD}
+      - MIRA_API_BASE_URL=${MIRA_API_BASE_URL}
+      # MinIO Configuration for PDF Highlighting
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - MINIO_SECURE=false
+      - PDF_CLEANUP_DELAY=${PDF_CLEANUP_DELAY:-3600}
+    ports:
+      - "${MIRA_AGENT_EXTERNAL_PORT}:${MIRA_AGENT_INTERNAL_PORT}"
+    volumes:
+      - ./mira-ai/mira-agent:/app
+      - agent_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - mira-network
+    restart: unless-stopped
+    command: ["uvicorn", "main_old:app", "--host", "0.0.0.0", "--port", "8089"]
+
+  # MIRA Backend Django Service
+  mira-backend:
+    build:
+      context: ./mira-backend
+      dockerfile: Dockerfile
+    container_name: mira-backend
+    environment:
+      - FERNET_KEY=${FERNET_KEY}
+      - DATABASE_NAME=${POSTGRES_DB}
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_HOST=${POSTGRES_DOCKER_HOST}
+      - DATABASE_PORT=${POSTGRES_INTERNAL_PORT}
+      - DJANGO_PORT=${MIRA_BACKEND_INTERNAL_PORT}
+      - INGEST_BASE_URL=${MIRA_AGENT_DOCKER_URL}
+      - FRONTEND_BASE_URL=${MIRA_FRONTEND_DOCKER_URL}
+      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME:-7}
+      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME:-30}
+      - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - MINIO_ENDPOINT=minio:9000 # Override for Docker internal communication
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_SECURE=${MINIO_SECURE}
+      - MINIO_API_PORT=${MINIO_API_PORT}
+      - MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - PDF_CLEANUP_DELAY=${PDF_CLEANUP_DELAY}
+      - DEBUG=${DEBUG}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "${MIRA_BACKEND_EXTERNAL_PORT}:${MIRA_BACKEND_INTERNAL_PORT}"
+    volumes:
+      - ./mira-backend:/app
+      - backend_static:/app/static
+      - backend_media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mira-network
+    restart: unless-stopped
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8082"]
+
+  # MIRA MCP Server (Pinecone Document Retrieval)
+  mira-mcp-server:
+    build:
+      context: ./mira-ai/mira-mcp-server
+      dockerfile: Dockerfile
+    container_name: mira-mcp-server
+    environment:
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TOKENIZERS_PARALLELISM=${TOKENIZERS_PARALLELISM}
+      - ENVIRONMENT=${ENVIRONMENT}
+    ports:
+      - "${MIRA_MCP_SERVER_EXTERNAL_PORT}:${MIRA_MCP_SERVER_INTERNAL_PORT}"
+    volumes:
+      - ./mira-ai/mira-mcp-server:/app
+    networks:
+      - mira-network
+    restart: unless-stopped
+
+  # MIRA Frontend (Next.js)
+  mira-frontend:
+    build:
+      context: ./mira_frontend
+      dockerfile: Dockerfile
+    container_name: mira-frontend
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
+      # - NEXT_PUBLIC_API_BASE_URL=http://mira-backend:8082/api/v1
+      # - NEXT_PUBLIC_CHAT_API_BASE_URL=http://localhost:8081
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+      - NEXT_PUBLIC_CHAT_API_BASE_URL=${NEXT_PUBLIC_CHAT_API_BASE_URL}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "${MIRA_FRONTEND_EXTERNAL_PORT}:${MIRA_FRONTEND_INTERNAL_PORT}"
+    volumes:
+      - ./mira_frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - mira-backend
+      - mira-agent
+    networks:
+      - mira-network
+    restart: unless-stopped
+
+  celery:
+    build:
+      context: ./mira-backend
+      dockerfile: Dockerfile
+    container_name: mira-celery
+    command: celery -A mira worker --loglevel=info
+    env_file:
+      - ./mira-backend/.env
+    environment:
+      - PYTHONPATH=/app/src
+      - DATABASE_NAME=${POSTGRES_DB}
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_HOST=${POSTGRES_HOST}
+      - DATABASE_PORT=${POSTGRES_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    volumes:
+      - ./mira-backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mira-network
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: ./mira-backend
+      dockerfile: Dockerfile
+    container_name: mira-celery-beat
+    command: celery -A mira beat --loglevel=info
+    env_file:
+      - ./mira-backend/.env
+    environment:
+      - PYTHONPATH=/app/src
+      - DATABASE_NAME=${POSTGRES_DB}
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_HOST=${POSTGRES_HOST}
+      - DATABASE_PORT=${POSTGRES_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    volumes:
+      - ./mira-backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mira-network
+    restart: unless-stopped
+
+  tailwind:
+    build:
+      context: ./mira-backend
+      dockerfile: Dockerfile.tailwind
+    volumes:
+      - ./mira-backend:/app
+    depends_on:
+      - mira-backend
+
+  # Airflow Services
+  redis:
+    image: redis:latest
+    networks:
+      - mira-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+    restart: always
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8083:8080" # Changed from 8080 to avoid conflict
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-worker:
+    <<: *airflow-common
+    command: celery worker
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-init:
+    <<: *airflow-common
+    user: "0:0" # Run as root for initialization
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        set -e
+        echo "Starting Airflow initialization as root..."
+
+        # Create airflow user if it doesn't exist
+        if ! id -u airflow > /dev/null 2>&1; then
+          useradd -u 50000 -g 0 -d /opt/airflow airflow
+        fi
+
+        # Create and set permissions for Airflow directories
+        echo "Creating Airflow directories..."
+        mkdir -p /opt/airflow/{dags,logs,plugins}
+        mkdir -p /opt/airflow/logs/{dag_processor_manager,scheduler}
+
+        # Set ownership to airflow user
+        chown -R 50000:0 /opt/airflow
+        chmod -R 755 /opt/airflow
+
+        echo "Waiting for PostgreSQL to be ready..."
+        # Install postgresql-client if not available
+        apt-get update > /dev/null 2>&1 && apt-get install -y postgresql-client > /dev/null 2>&1
+
+        # Wait for database to be ready with timeout
+        timeout=60
+        while [ $timeout -gt 0 ]; do
+          if psql postgresql://airflow:airflow@postgres:5432/airflow -c '\q' 2>/dev/null; then
+            echo "PostgreSQL is ready - proceeding with Airflow initialization"
+            break
+          fi
+          echo "PostgreSQL is unavailable - sleeping (${timeout}s remaining)"
+          sleep 3
+          timeout=$((timeout-3))
+        done
+
+        if [ $timeout -le 0 ]; then
+          echo "ERROR: PostgreSQL connection timeout"
+          exit 1
+        fi
+
+        # Switch to airflow user for initialization
+        echo "Switching to airflow user for initialization..."
+        su -s /bin/bash airflow -c "
+          export AIRFLOW_HOME=/opt/airflow
+          echo 'Initializing Airflow database...'
+          airflow db init
+          echo 'Creating admin user...'
+          airflow users create \
+            --username admin \
+            --firstname MIRA \
+            --lastname Admin \
+            --role Admin \
+            --email admin@mira.ai \
+            --password admin 2>/dev/null || echo 'User already exists, skipping creation'
+        "
+
+        echo "Airflow initialization completed successfully!"
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_UPGRADE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  mira-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+  agent_uploads:
+    driver: local
+  backend_static:
+    driver: local
+  backend_media:
+    driver: local

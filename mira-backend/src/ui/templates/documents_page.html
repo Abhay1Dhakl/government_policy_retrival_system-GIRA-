@@ -1,0 +1,261 @@
+{% extends "ui/base.html" %}
+{% block title %}Documents - MIRA Admin{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <h2 class="text-2xl font-bold">Documents</h2>
+  <button id="openUploadModal" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Upload Document
+  </button>
+</div>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-3/4 overflow-y-auto max-h-[90vh]">
+    <h3 class="text-xl font-bold mb-4">Upload Document</h3>
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <label class="block mb-2">Title</label>
+      <input type="text" name="title" class="border rounded px-3 py-2 w-full mb-4" required>
+
+      <div class="flex items-center mb-4">
+        <input type="checkbox" name="is_global" value="true" class="mr-2">
+        <label>Is Global</label>
+      </div>
+
+      <label class="block mb-2">Document Type</label>
+      <select name="document_type" id="documentTypeSelect" class="border rounded px-3 py-2 w-full mb-4" required>
+
+      </select>
+
+      <label class="block mb-2">Source Type</label>
+      <select name="source_type" class="border rounded px-3 py-2 w-full mb-4" required>
+        <option value="UPLOAD">UPLOAD</option>
+        <option value="API">API</option>
+      </select>
+
+      <label class="block mb-2">Language</label>
+      <select name="language" class="border rounded px-3 py-2 w-full mb-4" required>
+        <option value="">Select a language</option>
+        {% for code, name in languages %}
+        <option value="{{ code }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+
+      <label class="block mb-2">Region</label>
+      <select name="region" id="regionSelect"
+        class="border rounded px-3 py-2 w-full mb-4 disabled:bg-gray-200 disabled:cursor-not-allowed">
+        <option value="">Select a country</option>
+        {% for code, name in countries %}
+        <option value="{{ code }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+
+
+      <label class="block mb-2">Author</label>
+      <input type="text" name="author" class="border rounded px-3 py-2 w-full mb-4">
+
+      <label class="block mb-2">Tags</label>
+      <input type="text" name="tags" class="border rounded px-3 py-2 w-full mb-4">
+
+      <label class="block mb-2">File Source</label>
+      <select name="file_source" id="fileSourceSelect" class="border rounded px-3 py-2 w-full mb-4" required>
+        <option value="UPLOAD">Upload</option>
+        <option value="GOOGLE_DRIVE">Google Drive</option>
+        <option value="ONEDRIVE">OneDrive</option>
+        <option value="SHAREPOINT">SharePoint</option>
+        <option value="VEEVA_VAULT">Veeva Vault</option>
+        <option value="SALESFORCE">Salesforce</option>
+        <option value="APRIMO_FUSE">Aprimo FUSE</option>
+
+      </select>
+
+      <div id="fileUploadDiv" class="mb-4">
+        <input type="file" name="file" class="border rounded px-3 py-2 w-full">
+      </div>
+
+      <div id="linkInputDiv" class="hidden mb-4">
+        <input type="url" name="file_source_link" placeholder="Paste file link" class="border rounded px-3 py-2 w-full">
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button type="button" id="closeUploadModal" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById("uploadModal");
+  const openBtn = document.getElementById("openUploadModal");
+  const closeBtn = document.getElementById("closeUploadModal");
+  const fileSourceSelect = document.getElementById("fileSourceSelect");
+  const fileDiv = document.getElementById("fileUploadDiv");
+  const linkDiv = document.getElementById("linkInputDiv");
+  const isGlobalCheckbox = document.querySelector("input[name='is_global']");
+  const documentTypeSelect = document.getElementById("documentTypeSelect");
+  const regionSelect = document.getElementById("regionSelect");
+
+  const localChoices = {{ local_choices| safe }};
+  const globalChoices = {{ global_choices| safe }};
+
+  function populateDocumentTypes(isGlobal) {
+    documentTypeSelect.innerHTML = "";
+    const options = isGlobal ? globalChoices : localChoices;
+    options.forEach(([value, label]) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = value;
+      optionElement.textContent = label;
+      documentTypeSelect.appendChild(optionElement);
+    });
+  }
+
+  populateDocumentTypes(isGlobalCheckbox.checked);
+
+  isGlobalCheckbox.addEventListener("change", () => {
+    populateDocumentTypes(isGlobalCheckbox.checked);
+  });
+
+
+  function toggleCountryRegion(isGlobal) {
+    if (isGlobal) {
+      regionSelect.disabled = true;
+      regionSelect.value = "";
+    } else {
+      regionSelect.disabled = false;
+    }
+  }
+
+  toggleCountryRegion(isGlobalCheckbox.checked);
+
+  isGlobalCheckbox.addEventListener("change", () => {
+    toggleCountryRegion(isGlobalCheckbox.checked);
+  });
+
+  openBtn.onclick = () => modal.classList.remove("hidden");
+  closeBtn.onclick = () => modal.classList.add("hidden");
+
+  fileSourceSelect.onchange = () => {
+    if (fileSourceSelect.value === "UPLOAD") {
+      fileDiv.classList.remove("hidden");
+      linkDiv.classList.add("hidden");
+    } else {
+      fileDiv.classList.add("hidden");
+      linkDiv.classList.remove("hidden");
+    }
+  };
+
+
+  document.getElementById("uploadForm").addEventListener("submit", async function (event) {
+    event.preventDefault(); // Stop normal form submission
+
+    const fileInput = document.querySelector("input[name='file']");
+    if (!fileInput || !fileInput.files.length) {
+      alert("Please select a file first!");
+      return;
+    }
+
+    const filename = fileInput.files[0].name;
+
+    // Check duplicate
+    const checkUrl = "{% url 'check_duplicate_document' %}?filename=" + encodeURIComponent(filename);
+    const response = await fetch(checkUrl);
+    const data = await response.json();
+
+    if (data.exists) {
+      const userConfirmed = confirm(`A file named "${filename}" already exists.\nDo you want to rename to ${data.expected_filename} and save it?`);
+      if (!userConfirmed) {
+        alert("Upload cancelled by user.");
+        return;
+      } else {
+        // Add hidden field to indicate rename approval
+        let renameField = document.querySelector("input[name='allow_rename']");
+        if (!renameField) {
+          renameField = document.createElement("input");
+          renameField.type = "hidden";
+          renameField.name = "allow_rename";
+          renameField.value = "true";
+          this.appendChild(renameField);
+        }
+      }
+    }
+
+    this.submit();
+  });
+</script>
+
+<!-- Uploaded Docs -->
+<h3 class="text-xl font-bold mt-8 mb-4">Uploaded Documents</h3>
+
+<div class="overflow-x-auto">
+  <table class="w-full bg-white border border-gray-200 rounded-lg shadow">
+    <thead class="bg-gray-200">
+      <tr>
+        <th class="py-2 px-4 border-b text-left">S.N </th>
+        <th class="py-2 px-4 border-b text-left">Title</th>
+        <th class="py-2 px-4 border-b text-left">Type</th>
+        <th class="py-2 px-4 border-b text-left">Language</th>
+        <th class="py-2 px-4 border-b text-left">Region</th>
+        <th class="py-2 px-4 border-b text-left">Author</th>
+        <th class="py-2 px-4 border-b text-left">Minio Object Name</th>
+        <th class="py-2 px-4 border-b text-left">File</th>
+        <th class="py-2 px-4 border-b text-left">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doc in documents %}
+      <tr class="hover:bg-gray-50">
+        <td class="py-2 px-4 border-b">{{ forloop.counter }}</td>
+        <td class="py-2 px-4 border-b">{{ doc.title }}</td>
+        <td class="py-2 px-4 border-b">{{ doc.document_type }}</td>
+        <td class="py-2 px-4 border-b">{{ doc.language }}</td>
+        <td class="py-2 px-4 border-b">{{ doc.region }}</td>
+        <td class="py-2 px-4 border-b">{{ doc.author }}</td>
+        <td class="py-2 px-4 border-b">{{ doc.minio_object_name }}</td>
+
+
+        <td class="py-2 px-4 border-b">
+          {% if doc.files.all %}
+          <a href="{{ doc.files.first.file.url }}" target="_blank"
+            class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded mr-2">
+            View
+          </a>
+          <a href="{{ doc.files.first.file.url }}" download
+            class="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">
+            Download
+          </a>
+          {% else %}
+          {% if doc.minio_object_name %}
+          <a href="{% url 'document_download' doc.id %}?action=view" target="_blank"
+            class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded mr-2">
+            View
+          </a>
+          <a href="{% url 'document_download' doc.id %}?action=download"
+            class="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">
+            Download
+          </a>
+          {% endif %}
+          {% endif %}
+        </td>
+        <td class="py-2 px-4 border-b flex space-x-2">
+          <form method="post" action="{% url 'document_delete' doc.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class=" text-gray-500 hover:text-red-600 py-1 px-3 rounded" title="Delete">
+              <i data-feather="trash"></i>
+            </button>
+          </form>
+        </td>
+
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center py-4 text-gray-500">No documents uploaded yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

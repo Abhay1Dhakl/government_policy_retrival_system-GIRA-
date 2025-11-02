@@ -1,0 +1,22 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY . .
+
+# CMD ["npx", "tailwindcss", "-i", "./src/ui/static/ui/css/input.css", "-o", "./src/ui/static/ui/css/style.css", "--watch", "--poll"] 
+
+RUN mkdir -p ./src/ui/static/ui/css
+
+# Create input.css if it doesn't exist
+RUN if [ ! -f ./src/ui/static/ui/css/input.css ]; then \
+        echo "@tailwind base;" > ./src/ui/static/ui/css/input.css && \
+        echo "@tailwind components;" >> ./src/ui/static/ui/css/input.css && \
+        echo "@tailwind utilities;" >> ./src/ui/static/ui/css/input.css; \
+    fi
+
+# Build CSS once first, then watch
+CMD ["sh", "-c", "npx tailwindcss -i ./src/ui/static/ui/css/input.css -o ./src/ui/static/ui/css/style.css --minify && npx tailwindcss -i ./src/ui/static/ui/css/input.css -o ./src/ui/static/ui/css/style.css --watch --poll"]

@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.tgz
+*.tar.gz
+
+# Debug
+debug.log
+
+# Local env files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+
+# IDE
+.vscode
+.idea
+
+# OS generated files
+Thumbs.db

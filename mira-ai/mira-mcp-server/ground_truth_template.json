@@ -1,0 +1,15 @@
+{
+  "queries": {
+    "azithromycin use in children": {
+      "description": "Documents containing information about azithromycin use in pediatric patients",
+      "relevant_document_ids": [],
+      "partially_relevant_ids": []
+    },
+    "azithromycin side effects": {
+      "description": "Documents containing adverse reactions and side effects",
+      "relevant_document_ids": [],
+      "partially_relevant_ids": []
+    }
+  },
+  "instructions": "\n        To create ground truth:\n        1. For each query, manually review the retrieved documents\n        2. Determine which documents are relevant to the query\n        3. Add their IDs to the relevant_document_ids list\n        4. Save this as ground_truth.json\n        5. Load it in your evaluator: evaluator.load_ground_truth('ground_truth.json')\n        "
+}

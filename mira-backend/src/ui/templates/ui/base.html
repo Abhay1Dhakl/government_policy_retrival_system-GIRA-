@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}MIRA Admin Panel{% endblock %}</title>
+  {% load static %}
+  <link href="{% static 'ui/css/style.css' %}" rel="stylesheet">
+</head>
+<script src="https://unpkg.com/feather-icons"></script>
+
+<body class="bg-gray-100">
+  <div class="flex min-h-screen">
+
+    <aside class="w-64 bg-blue-50 shadow-md flex justify-between" style="flex-direction: column;">
+      <div class="">
+        <div class="p-6 border-b">
+          <a href="{% url 'home' %}"
+            class="block px-6 py-3 text-xl font-bold text-blue-600 hover:bg-blue-100 hover:text-blue-600">
+            MIRA ADMIN
+          </a>
+        </div>
+        <nav class="mt-6">
+
+          <a href="{% url 'users_page' %}" class="block px-6 py-3 text-gray-700 hover:bg-blue-100 hover:text-blue-600">
+            Users
+          </a>
+          <a href="{% url 'documents_page' %}"
+            class="block px-6 py-3 text-gray-700 hover:bg-blue-100 hover:text-blue-600">
+            Documents
+          </a>
+          <a href="{% url 'llm_page' %}" class="block px-6 py-3 text-gray-700 hover:bg-blue-100 hover:text-blue-600">
+            LLMs
+          </a>
+
+
+        </nav>
+
+      </div>
+
+      <div class="relative px-4 pb-6">
+        <a href="{% url 'logout' %}"
+          class="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition">
+          <i data-feather="log-out"></i>
+          </span>
+          <span class="font-semibold">Logout</span>
+        </a>
+      </div>
+
+    </aside>
+
+    <main class="flex-1 p-10">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    feather.replace()
+  </script>
+
+</body>
+
+</html>

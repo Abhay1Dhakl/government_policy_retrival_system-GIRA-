@@ -1,0 +1,214 @@
+{% extends "ui/base.html" %}
+{% block title %}Users - MIRA Admin{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6">Users</h2>
+
+<form method="post" class="mb-6">
+  {% csrf_token %}
+  <div class="flex space-x-2">
+    <input type="email" name="email" placeholder="Enter email" required class="border rounded px-3 py-2 flex-1" />
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      Invite User
+    </button>
+  </div>
+</form>
+
+<table class="w-full border-collapse bg-white shadow rounded">
+  <thead>
+    <tr class="bg-gray-200 text-left">
+      <th class="p-3">S.N</th>
+      <th class="p-3">Email</th>
+      <th class="p-3">Role</th>
+      <th class="p-3">Country</th>
+      <th class="p-3">Created At</th>
+      <th class="p-3">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr class="border-t">
+      <td class="p-3">{{ forloop.counter }}</td>
+      <td class="p-3">{{ user.email }}</td>
+      <td class="p-3">{{ user.role }}</td>
+      <td class="p-3">{{ user.country }}</td>
+      <td class="p-3">{{ user.created_at }}</td>
+      <td class="p-3">
+        <button type="button" class="text-gray-500 hover:text-blue-700 py-1 sm:px-3 rounded edit-btn" title="Edit"
+          data-id="{{ user.id }}" data-email="{{ user.email }}" data-first_name="{{ user.first_name }}"
+          data-last_name="{{ user.last_name }}" data-phone_number="{{ user.phone_number }}"
+          data-country="{{ user.country }}" data-city="{{ user.city }}" data-address="{{ user.address }}"
+          data-zip_code="{{ user.zip_code }}" data-institution="{{ user.institution }}" data-role="{{ user.role }}"
+          data-is_active="{{ user.is_active }}" data-is_staff="{{ user.is_staff }}">
+          <i data-feather="edit"></i>
+        </button>
+        <form method="post" action="{% url 'user_delete' user.id %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class=" text-gray-500 hover:text-red-600 py-1 px-3 rounded" title="Delete">
+            <i data-feather="trash"></i>
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+<!-- Edit User Modal -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-2xl shadow-2xl w-[800px] p-8 overflow-y-auto max-h-[85vh]" style="width: 800px;">
+    <h3 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Edit User</h3>
+    <form id="editForm" class="space-y-5">
+      {% csrf_token %}
+      <input type="hidden" id="editUserId" />
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+          <input type="text" id="editEmail" class="border rounded-lg px-3 py-2 w-full bg-gray-100" disabled />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">First Name</label>
+          <input type="text" id="editFirstName" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Last Name</label>
+          <input type="text" id="editLastName" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+          <input type="text" id="editPhoneNumber" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Country</label>
+          <input type="text" id="editCountry" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">City</label>
+          <input type="text" id="editCity" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Address</label>
+          <input type="text" id="editAddress" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Zip Code</label>
+          <input type="text" id="editZipCode" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Institution</label>
+          <input type="text" id="editInstitution" class="border rounded-lg px-3 py-2 w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
+          <select id="editRole" class="border rounded-lg px-3 py-2 w-full">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Active</label>
+          <select id="editIsActive" class="border rounded-lg px-3 py-2 w-full">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Staff</label>
+          <select id="editIsStaff" class="border rounded-lg px-3 py-2 w-full">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4 border-t">
+        <button type="button" id="closeModal" class="px-5 py-2 border rounded-lg hover:bg-gray-100">
+          Cancel
+        </button>
+        <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition">
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    feather.replace();
+
+    const modal = document.getElementById("editModal");
+    const closeModal = document.getElementById("closeModal");
+    const editForm = document.getElementById("editForm");
+
+    document.querySelectorAll(".edit-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // Helper to safely get data (avoid "None")
+        const safe = (val) => (val && val !== "None" ? val : "");
+
+        document.getElementById("editEmail").value = safe(btn.dataset.email);
+        document.getElementById("editUserId").value = btn.dataset.id;
+        document.getElementById("editFirstName").value = safe(btn.dataset.first_name);
+        document.getElementById("editLastName").value = safe(btn.dataset.last_name);
+        document.getElementById("editPhoneNumber").value = safe(btn.dataset.phone_number);
+        document.getElementById("editCountry").value = safe(btn.dataset.country);
+        document.getElementById("editCity").value = safe(btn.dataset.city);
+        document.getElementById("editAddress").value = safe(btn.dataset.address);
+        document.getElementById("editZipCode").value = safe(btn.dataset.zip_code);
+        document.getElementById("editInstitution").value = safe(btn.dataset.institution);
+        document.getElementById("editRole").value = safe(btn.dataset.role) || "user";
+        document.getElementById("editIsActive").value = btn.dataset.is_active === "True" ? "true" : "false";
+        document.getElementById("editIsStaff").value = btn.dataset.is_staff === "True" ? "true" : "false";
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      });
+    });
+
+    closeModal.addEventListener("click", () => modal.classList.add("hidden"));
+
+    // Form submit
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById("editUserId").value;
+      const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+      const payload = {
+        first_name: document.getElementById("editFirstName").value,
+        last_name: document.getElementById("editLastName").value,
+        phone_number: document.getElementById("editPhoneNumber").value,
+        country: document.getElementById("editCountry").value,
+        city: document.getElementById("editCity").value,
+        address: document.getElementById("editAddress").value,
+        zip_code: document.getElementById("editZipCode").value,
+        institution: document.getElementById("editInstitution").value,
+        role: document.getElementById("editRole").value,
+        is_active: document.getElementById("editIsActive").value === "true",
+        is_staff: document.getElementById("editIsStaff").value === "true",
+      };
+
+      const res = await fetch(`/admin-ui/users/${userId}/edit/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert("✅ User updated successfully!");
+        window.location.reload();
+      } else {
+        alert("❌ Error updating user: " + data.error);
+      }
+    });
+  });
+</script>
+
+
+{% endblock %}
