@@ -1,6 +1,6 @@
 x-airflow-common: &airflow-common
   build:
-    context: ./mira-ai/mira-agent/airflow
+    context: ./gira-ai/gira-agent/airflow
     dockerfile: Dockerfile
   user: "${AIRFLOW_UID:-50000}:0"
   environment: &airflow-common-env
@@ -21,12 +21,12 @@ x-airflow-common: &airflow-common
     # Set Airflow home directory explicitly
     AIRFLOW_HOME: /opt/airflow
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}/mira-ai/mira-agent/airflow/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-.}/mira-ai/mira-agent/airflow/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-.}/mira-ai/mira-agent/airflow/plugins:/opt/airflow/plugins
-    - ./mira-ai/mira-agent:/opt/airflow/mira_agent
+    - ${AIRFLOW_PROJ_DIR:-.}/gira-ai/gira-agent/airflow/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/gira-ai/gira-agent/airflow/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/gira-ai/gira-agent/airflow/plugins:/opt/airflow/plugins
+    - ./gira-ai/gira-agent:/opt/airflow/gira_agent
   networks:
-    - mira-network
+    - gira-network
   depends_on: &airflow-common-depends-on
     redis:
       condition: service_healthy
@@ -37,7 +37,7 @@ services:
   # PostgreSQL Database for main application and Airflow
   postgres:
     image: postgres:16-alpine
-    container_name: mira-postgres
+    container_name: gira-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -67,7 +67,7 @@ services:
         "log_connections=on",
       ]
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
     deploy:
       resources:
@@ -91,12 +91,12 @@ services:
   # MinIO Object Storage
   minio:
     image: minio/minio:latest
-    container_name: mira-minio
+    container_name: gira-minio
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      # MINIO_BROWSER_REDIRECT_URL: https://mira.medgentics.com/minio
-      # MINIO_SERVER_URL: https://mira.medgentics.com/minio
+      # MINIO_BROWSER_REDIRECT_URL: https://gira.medgentics.com/minio
+      # MINIO_SERVER_URL: https://gira.medgentics.com/minio
       MINIO_DOMAIN: ${MINIO_DOMAIN:-localhost}
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
@@ -104,7 +104,7 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
     command: server /data --console-address ":9001"
     healthcheck:
@@ -116,12 +116,12 @@ services:
   # MinIO Client (for bucket initialization)
   minio-init:
     image: minio/mc:latest
-    container_name: mira-minio-init
+    container_name: gira-minio-init
     depends_on:
       minio:
         condition: service_healthy
     networks:
-      - mira-network
+      - gira-network
     entrypoint: >
       /bin/sh -c "
       echo 'Waiting for MinIO to be ready...';
@@ -134,12 +134,12 @@ services:
       echo 'MinIO buckets created and configured successfully';
       "
 
-  # MIRA AI Agent Service
-  mira-agent:
+  # GIRA AI Agent Service
+  gira-agent:
     build:
-      context: ./mira-ai/mira-agent
+      context: ./gira-ai/gira-agent
       dockerfile: Dockerfile
-    container_name: mira-agent
+    container_name: gira-agent
     environment:
       - FERNET_KEY=${FERNET_KEY}
       - DATABASE_URL=${DATABASE_URL_PROD}
@@ -153,7 +153,7 @@ services:
       - MCP_SERVER_TRANSPORT=${MCP_SERVER_TRANSPORT}
       - CORS_ORIGINS_DEV=${CORS_ORIGINS_DEV}
       - CORS_ORIGINS_PROD=${CORS_ORIGINS_PROD}
-      - MIRA_API_BASE_URL=${MIRA_API_BASE_URL}
+      - GIRA_API_BASE_URL=${GIRA_API_BASE_URL}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       # MinIO Configuration for PDF Highlighting
       - MINIO_ENDPOINT=minio:9000
@@ -162,9 +162,9 @@ services:
       - MINIO_SECURE=false
       - PDF_CLEANUP_DELAY=${PDF_CLEANUP_DELAY:-3600}
     ports:
-      - "${MIRA_AGENT_EXTERNAL_PORT}:${MIRA_AGENT_INTERNAL_PORT}"
+      - "${GIRA_AGENT_EXTERNAL_PORT}:${GIRA_AGENT_INTERNAL_PORT}"
     volumes:
-      - ./mira-ai/mira-agent:/app
+      - ./gira-ai/gira-agent:/app
       - agent_uploads:/app/uploads
     depends_on:
       postgres:
@@ -172,17 +172,17 @@ services:
       minio:
         condition: service_healthy
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
     command:
       ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081", "--reload"]
 
   # MIRA Backend Django Service
-  mira-backend:
+  gira-backend:
     build:
-      context: ./mira-backend
+      context: ./gira-backend
       dockerfile: Dockerfile
-    container_name: mira-backend
+    container_name: gira-backend
     environment:
       - FERNET_KEY=${FERNET_KEY}
       - DATABASE_NAME=${POSTGRES_DB}
@@ -190,9 +190,9 @@ services:
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_HOST=${POSTGRES_DOCKER_HOST}
       - DATABASE_PORT=${POSTGRES_INTERNAL_PORT}
-      - DJANGO_PORT=${MIRA_BACKEND_INTERNAL_PORT}
-      - INGEST_BASE_URL=${MIRA_AGENT_DOCKER_URL}
-      - FRONTEND_BASE_URL=${MIRA_FRONTEND_DOCKER_URL}
+      - DJANGO_PORT=${GIRA_BACKEND_INTERNAL_PORT}
+      - INGEST_BASE_URL=${GIRA_AGENT_DOCKER_URL}
+      - FRONTEND_BASE_URL=${GIRA_FRONTEND_DOCKER_URL}
       - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME:-7}
       - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME:-30}
       - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
@@ -217,25 +217,25 @@ services:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
       - LOG_LEVEL=${LOG_LEVEL}
     ports:
-      - "${MIRA_BACKEND_EXTERNAL_PORT}:${MIRA_BACKEND_INTERNAL_PORT}"
+      - "${GIRA_BACKEND_EXTERNAL_PORT}:${GIRA_BACKEND_INTERNAL_PORT}"
     volumes:
-      - ./mira-backend:/app
+      - ./gira-backend:/app
       - backend_static:/app/static
       - backend_media:/app/media
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
     command: ["python", "manage.py", "runserver", "0.0.0.0:8082"]
 
   # MIRA MCP Server (Pinecone Document Retrieval)
-  mira-mcp-server:
+  gira-mcp-server:
     build:
-      context: ./mira-ai/mira-mcp-server
+      context: ./gira-ai/gira-mcp-server
       dockerfile: Dockerfile
-    container_name: mira-mcp-server
+    container_name: gira-mcp-server
     environment:
       - PINECONE_API_KEY=${PINECONE_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -243,49 +243,49 @@ services:
       - ENVIRONMENT=${ENVIRONMENT}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
-      - "${MIRA_MCP_SERVER_EXTERNAL_PORT}:${MIRA_MCP_SERVER_INTERNAL_PORT}"
+      - "${GIRA_MCP_SERVER_EXTERNAL_PORT}:${GIRA_MCP_SERVER_INTERNAL_PORT}"
     volumes:
-      - ./mira-ai/mira-mcp-server:/app
+      - ./gira-ai/gira-mcp-server:/app
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
 
   # MIRA Frontend (Next.js)
-  mira-frontend:
+  gira-frontend:
     build:
-      context: ./mira_frontend
+      context: ./gira_frontend
       dockerfile: Dockerfile
-    container_name: mira-frontend
+    container_name: gira-frontend
     environment:
       - NODE_ENV=${NODE_ENV}
       - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
-      # - NEXT_PUBLIC_API_BASE_URL=http://mira-backend:8082/api/v1
+      # - NEXT_PUBLIC_API_BASE_URL=http://gira-backend:8082/api/v1
       # - NEXT_PUBLIC_CHAT_API_BASE_URL=http://localhost:8081
       - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
       - NEXT_PUBLIC_CHAT_API_BASE_URL=${NEXT_PUBLIC_CHAT_API_BASE_URL}
       - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
-      - "${MIRA_FRONTEND_EXTERNAL_PORT}:${MIRA_FRONTEND_INTERNAL_PORT}"
+      - "${GIRA_FRONTEND_EXTERNAL_PORT}:${GIRA_FRONTEND_INTERNAL_PORT}"
     volumes:
-      - ./mira_frontend:/app
+      - ./gira_frontend:/app
       - /app/node_modules
       - /app/.next
     depends_on:
-      - mira-backend
-      - mira-agent
+      - gira-backend
+      - gira-agent
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
 
   celery:
     build:
-      context: ./mira-backend
+      context: ./gira-backend
       dockerfile: Dockerfile
     container_name: mira-celery
     command: celery -A mira worker --loglevel=info
     env_file:
-      - ./mira-backend/.env
+      - ./gira-backend/.env
     environment:
       - PYTHONPATH=/app/src
       - DATABASE_NAME=${POSTGRES_DB}
@@ -296,24 +296,24 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     volumes:
-      - ./mira-backend:/app
+      - ./gira-backend:/app
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
 
   celery-beat:
     build:
-      context: ./mira-backend
+      context: ./gira-backend
       dockerfile: Dockerfile
     container_name: mira-celery-beat
     command: celery -A mira beat --loglevel=info
     env_file:
-      - ./mira-backend/.env
+      - ./gira-backend/.env
     environment:
       - PYTHONPATH=/app/src
       - DATABASE_NAME=${POSTGRES_DB}
@@ -324,30 +324,30 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     volumes:
-      - ./mira-backend:/app
+      - ./gira-backend:/app
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - mira-network
+      - gira-network
     restart: unless-stopped
 
   tailwind:
     build:
-      context: ./mira-backend
+      context: ./gira-backend
       dockerfile: Dockerfile.tailwind
     volumes:
-      - ./mira-backend:/app
+      - ./gira-backend:/app
     depends_on:
-      - mira-backend
+      - gira-backend
 
   # Airflow Services
   redis:
     image: redis:latest
     networks:
-      - mira-network
+      - gira-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -479,7 +479,7 @@ services:
         condition: service_healthy
 
 networks:
-  mira-network:
+  gira-network:
     driver: bridge
 
 volumes:

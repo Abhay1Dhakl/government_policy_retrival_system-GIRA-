@@ -1,5 +1,5 @@
 """
-Performance Monitoring and Alerting for MIRA AI
+Performance Monitoring and Alerting for GIRA AI
 Continuously monitors retrieval performance and alerts on degradation
 """
 
@@ -262,7 +262,7 @@ class PerformanceMonitor:
     def _send_email_alert(self, message: str):
         """Send email alert (placeholder - implement based on your email setup)"""
         # This is a placeholder - implement actual email sending based on your infrastructure
-        email_config = os.getenv('MIRA_ALERT_EMAIL_CONFIG')
+        email_config = os.getenv('GIRA_ALERT_EMAIL_CONFIG')
         if not email_config:
             return  # Email not configured
 
@@ -290,7 +290,7 @@ MIRA AI Performance Monitoring Alert
 {message}
 
 Time: {datetime.now().isoformat()}
-System: MIRA AI Retrieval Engine
+System: GIRA AI Retrieval Engine
 
 Please investigate the issue promptly.
             """

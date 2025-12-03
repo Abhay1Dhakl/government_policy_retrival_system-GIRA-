@@ -142,16 +142,16 @@ def get_cors_origins():
     
     # Fallback to localhost if no origins are configured
     if not origins:
-        origins = ["https://mira-backend.medgentics.com", "https://mira.medgentics.com"]
+        origins = ["https://gira-backend.medgentics.com", "https://gira.medgentics.com"]
     
     # Add internal Docker network origins for production
     if environment == "production":
         internal_origins = [
-            "http://mira-backend:8082",  # Internal Docker service name
+            "http://gira-backend:8082",  # Internal Docker service name
             "http://172.21.0.6:8082",   # Internal Docker IP from logs
-            "http://mira-backend",       # Docker service name without port
-            "https://mira-backend.medgentics.com",  # External backend domain
-            "http://mira-backend.medgentics.com",   # HTTP version
+            "http://gira-backend",       # Docker service name without port
+            "https://gira-backend.medgentics.com",  # External backend domain
+            "http://gira-backend.medgentics.com",   # HTTP version
         ]
         origins.extend(internal_origins)
     

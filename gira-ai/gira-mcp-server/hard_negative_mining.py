@@ -1,5 +1,5 @@
 """
-Hard Negative Mining for MIRA AI
+Hard Negative Mining for GIRA AI
 Actively finds hard negatives to improve retrieval model training and evaluation
 """
 

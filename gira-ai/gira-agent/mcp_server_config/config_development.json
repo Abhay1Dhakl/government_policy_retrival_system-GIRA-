@@ -2,7 +2,7 @@
 {
   "mcpServers": {
     "mcp_server": {
-      "url": "http://mira-mcp-server:8001/sse",
+      "url": "http://gira-mcp-server:8001/sse",
       "transport": "sse"
     }
   }

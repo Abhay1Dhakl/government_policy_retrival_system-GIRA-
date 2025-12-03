@@ -1325,7 +1325,7 @@ print(f"📊 Graph reranking enabled: {GRAPH_RERANKING_ENABLED}", file=sys.stder
 
 # Graph-RAG imports
 try:
-    sys.path.append(os.path.join(os.path.dirname(__file__), '../mira-agent/document_upload/app/services'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), '../gira-agent/document_upload/app/services'))
     from graph_builder import get_knowledge_graph, graph_expand_candidates, fuse_with_graph_expansion
     from entity_extraction import get_entity_extractor
     GRAPH_AVAILABLE = True

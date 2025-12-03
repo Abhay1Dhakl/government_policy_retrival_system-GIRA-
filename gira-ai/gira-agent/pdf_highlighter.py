@@ -15,7 +15,7 @@ from minio.error import S3Error
 
 
 class MedicalPDFHighlighter:
-    """Medical PDF highlighter for MIRA AI system with MinIO integration"""
+    """Medical PDF highlighter for GIRA AI system with MinIO integration"""
     
     def __init__(self, 
                  upload_directory: str = "uploads/highlighted",

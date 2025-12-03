@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to evaluate recall and precision for your MIRA AI search results
+Script to evaluate recall and precision for your GIRA AI search results
 """
 
 import json

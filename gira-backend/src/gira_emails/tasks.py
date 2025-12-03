@@ -18,7 +18,7 @@ def send_invite_mail(user_email, first_name):
         email_manager = EmailManager()
         email_manager.send_email(
             subject=subject,
-            template_name="mira_emails/invite_user.html",
+            template_name="gira_emails/invite_user.html",
             context=context,
             to_email=user_email,
             email_type=EmailType.INVITE_NEW_USER,

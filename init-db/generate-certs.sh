@@ -9,7 +9,7 @@ mkdir -p /var/lib/postgresql/certs
 openssl req -new -x509 -days 365 -nodes \
     -text -out /var/lib/postgresql/certs/server.crt \
     -keyout /var/lib/postgresql/certs/server.key \
-    -subj "/CN=mira-postgres"
+    -subj "/CN=gira-postgres"
 
 # Set proper permissions
 chmod 600 /var/lib/postgresql/certs/server.key

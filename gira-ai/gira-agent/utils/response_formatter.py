@@ -1,5 +1,5 @@
 """
-Response formatting utilities for MIRA AI
+Response formatting utilities for GIRA AI
 Handles formatting of MCP server responses and document processing
 """
 import sys

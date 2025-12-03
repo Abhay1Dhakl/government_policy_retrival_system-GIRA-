@@ -1,5 +1,5 @@
 """
-Query Intent Classification for MIRA AI
+Query Intent Classification for GIRA AI
 Routes queries to appropriate retrieval strategies based on intent analysis
 """
 

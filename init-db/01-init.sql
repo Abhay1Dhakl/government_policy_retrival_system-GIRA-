@@ -22,4 +22,4 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO airflow;
 ALTER SCHEMA public OWNER TO airflow;
 
 -- You can add any additional initialization SQL here
-SELECT 'Databases mira_db and airflow are ready for use!' as message;
+SELECT 'Databases gira_db and airflow are ready for use!' as message;

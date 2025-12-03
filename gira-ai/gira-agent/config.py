@@ -1,5 +1,5 @@
 """
-Configuration settings for MIRA AI Agent
+Configuration settings for GIRA AI Agent
 Centralizes all environment variables and constants for better maintainability
 """
 import os
@@ -82,15 +82,15 @@ class Settings:
             
             # Fallback for production
             if not origins:
-                origins = ["https://mira-backend.medgentics.com", "https://mira.medgentics.com"]
+                origins = ["https://gira-backend.medgentics.com", "https://gira.medgentics.com"]
             
             # Add internal Docker network origins
             internal_origins = [
-                "http://mira-backend:8082",
+                "http://gira-backend:8082",
                 "http://172.21.0.6:8082",
-                "http://mira-backend",
-                "https://mira-backend.medgentics.com",
-                "http://mira-backend.medgentics.com",
+                "http://gira-backend",
+                "https://gira-backend.medgentics.com",
+                "http://gira-backend.medgentics.com",
             ]
             origins.extend(internal_origins)
         else:

@@ -1,5 +1,5 @@
 """
-Logging configuration for MIRA AI Agent
+Logging configuration for GIRA AI Agent
 Centralizes logging setup for better observability and debugging
 """
 import logging
@@ -76,27 +76,27 @@ class LoggerFactory:
     
     @staticmethod
     def get_main_logger() -> logging.Logger:
-        return logging.getLogger("mira.main")
+        return logging.getLogger("gira.main")
     
     @staticmethod
     def get_mcp_logger() -> logging.Logger:
-        return logging.getLogger("mira.mcp")
+        return logging.getLogger("gira.mcp")
     
     @staticmethod
     def get_database_logger() -> logging.Logger:
-        return logging.getLogger("mira.database")
+        return logging.getLogger("gira.database")
     
     @staticmethod
     def get_pii_logger() -> logging.Logger:
-        return logging.getLogger("mira.pii")
+        return logging.getLogger("gira.pii")
     
     @staticmethod
     def get_pdf_logger() -> logging.Logger:
-        return logging.getLogger("mira.pdf")
+        return logging.getLogger("gira.pdf")
     
     @staticmethod
     def get_llm_logger() -> logging.Logger:
-        return logging.getLogger("mira.llm")
+        return logging.getLogger("gira.llm")
 
 
 # Performance tracking decorator

@@ -1,1 +1,1 @@
-"""Utility modules for MIRA AI Agent"""
+"""Utility modules for GIRA AI Agent"""

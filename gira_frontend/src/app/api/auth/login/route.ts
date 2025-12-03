@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://mira-backend:8082/api/v1/';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://gira-backend:8082/api/v1/';
 
 // Function to get CSRF token from Django
 async function getCSRFToken(): Promise<string | null> {

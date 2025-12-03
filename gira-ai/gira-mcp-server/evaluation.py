@@ -1,5 +1,5 @@
 """
-Evaluation framework for MIRA AI retrieval system
+Evaluation framework for GIRA AI retrieval system
 Provides comprehensive metrics for precision, recall, and ranking quality
 """
 

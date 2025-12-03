@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Database setup script for MIRA AI system
+Database setup script for GIRA AI system
 """
 import sys
 import os
@@ -104,7 +104,7 @@ def main():
         else:
             print("Unknown command. Use: create, setup, or reset")
     else:
-        print("MIRA Database Setup")
+        print("GIRA Database Setup")
         print("Commands:")
         print("  python setup_db.py create  - Create database and tables")
         print("  python setup_db.py setup   - Create tables only")

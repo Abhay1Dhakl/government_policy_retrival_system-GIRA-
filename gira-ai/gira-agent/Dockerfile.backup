@@ -1,4 +1,4 @@
-# MIRA Agent Dockerfile
+# GIRA Agent Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app

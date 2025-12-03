@@ -63,7 +63,7 @@ def call_ingest_api_for_document(document):
     """
     Call the ingest API for a given document instance
     """
-    ingest_base_url = os.getenv('INGEST_BASE_URL', 'http://mira-agent:8081')
+    ingest_base_url = os.getenv('INGEST_BASE_URL', 'http://gira-agent:8081')
     url = f"{ingest_base_url}/admin/documents/ingest/"
     
     # Build payload from document instance with proper validation

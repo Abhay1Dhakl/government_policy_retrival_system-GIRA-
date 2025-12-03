@@ -1,5 +1,5 @@
 """
-Cross-encoder re-ranking for MIRA AI retrieval system
+Cross-encoder re-ranking for GIRA AI retrieval system
 Provides learned re-ranking to improve precision over heuristic scoring
 """
 

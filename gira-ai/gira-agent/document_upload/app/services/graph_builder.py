@@ -1,5 +1,5 @@
 """
-Graph RAG Implementation for MIRA AI
+Graph RAG Implementation for GIRA AI
 Enhanced document retrieval using entity relationships and graph-based expansion.
 """
 

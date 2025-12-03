@@ -4,7 +4,7 @@ const nextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        destination: 'http://mira-backend:8082/api/v1/:path*',
+        destination: 'http://gira-backend:8082/api/v1/:path*',
       },
     ];
   },

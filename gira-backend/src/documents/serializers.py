@@ -55,7 +55,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         document.save()
 
         # Get ingest URL from environment or use default
-        ingest_base_url = os.getenv("INGEST_BASE_URL", "http://mira-agent:8081")
+        ingest_base_url = os.getenv("INGEST_BASE_URL", "http://gira-agent:8081")
         url = f"{ingest_base_url}/admin/documents/ingest/"
         payload = {
             "instance_id": validated_data.get("instance_id"),

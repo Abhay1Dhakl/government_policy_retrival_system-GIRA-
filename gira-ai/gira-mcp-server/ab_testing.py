@@ -1,5 +1,5 @@
 """
-A/B Testing infrastructure for MIRA AI retrieval system
+A/B Testing infrastructure for GIRA AI retrieval system
 Enables systematic comparison of different retrieval strategies
 """
 

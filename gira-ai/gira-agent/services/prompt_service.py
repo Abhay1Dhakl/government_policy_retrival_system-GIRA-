@@ -2,7 +2,7 @@ from typing import List
 
 def generate_system_prompt(user_query: str, country: str, tools: List[str]) -> str:
     """
-    Optimized system prompt for MIRA AI - Removes redundancy while preserving all critical requirements.
+    Optimized system prompt for GIRA AI - Removes redundancy while preserving all critical requirements.
     """
     
 

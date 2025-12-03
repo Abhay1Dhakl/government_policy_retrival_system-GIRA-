@@ -12,14 +12,14 @@ import sys
 import os
 
 # Calculate paths relative to the Airflow container structure
-# The MIRA_AGENT directory is mounted at /opt/airflow/mira_agent
-MIRA_AGENT_PATH = '/opt/airflow/mira_agent'
+# The GIRA_AGENT directory is mounted at /opt/airflow/gira_agent
+GIRA_AGENT_PATH = '/opt/airflow/gira_agent'
 
 # Add MIRA agent to Python path
-sys.path.append(MIRA_AGENT_PATH)
+sys.path.append(GIRA_AGENT_PATH)
 
 # Set environment variables for database and other configurations
-os.environ.setdefault('DATABASE_URL', 'postgresql://postgres:postgres@postgres/mira_db')
+os.environ.setdefault('DATABASE_URL', 'postgresql://postgres:postgres@postgres/gira_db')
 os.environ.setdefault('OPENAI_API_KEY', os.getenv('OPENAI_API_KEY', ''))
 
 from DPO_Algorithm.auto_train import (
@@ -32,7 +32,7 @@ from DPO_Algorithm.auto_train import (
 
 # DAG configuration
 default_args = {
-    'owner': 'mira',
+    'owner': 'gira',
     'depends_on_past': False,
     'email': ['abhaya@ubventuresllc.com'],
     'email_on_failure': True,
@@ -46,11 +46,11 @@ default_args = {
 dag = DAG(
     'mira_dpo_training',
     default_args=default_args,
-    description='Weekly DPO fine-tuning pipeline for MIRA AI',
+    description='Weekly DPO fine-tuning pipeline for GIRA AI',
     schedule_interval='0 0 * * 0',  # Run at midnight every Sunday
     start_date=days_ago(1),
     catchup=False,
-    tags=['mira', 'dpo', 'training'],
+    tags=['gira', 'dpo', 'training'],
 )
 
 def check_feedback_count(**context):
@@ -118,7 +118,7 @@ mark_used = PythonOperator(
 # Function to clean up old files
 def cleanup_old_files():
     """Clean up training files older than 7 days"""
-    cleanup_dir = os.path.join(MIRA_AGENT_PATH, 'DPO_Algorithm')
+    cleanup_dir = os.path.join(GIRA_AGENT_PATH, 'DPO_Algorithm')
     current_time = datetime.now()
     count = 0
     

@@ -2,7 +2,7 @@ from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.conf import settings
 
-from mira_emails.models import MiraEmail, EmailStatus
+from gira_emails.models import GiraEmail, EmailStatus
 from src.constants.email_constants import EmailType
 
 
@@ -30,7 +30,7 @@ class EmailManager:
 
         html_content = render_to_string(template_name, context)
 
-        email_record = MiraEmail.objects.create(
+        email_record = GiraEmail.objects.create(
             sender_email=settings.DEFAULT_FROM_EMAIL,
             receiver_email=to_email,
             email_type=email_type,

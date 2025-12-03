@@ -33,15 +33,15 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "mira-backend",
+    "gira-backend",
     "0.0.0.0",
     "*",
-    "mira.medgentics.com",
+    "gira.medgentics.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://mira.medgentics.com",
-    "https://mira-backend.medgentics.com",
+    "https://gira.medgentics.com",
+    "https://gira-backend.medgentics.com",
 ]
 
 
@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "documents.apps.DocumentsConfig",  # Use the config class to load signals
     "ui",
     "corsheaders",
-    "src.mira_emails",
+    "src.gira_emails",
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -87,7 +87,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 MIDDLEWARE = [
-    "mira.middleware.DocumentDebugMiddleware",  # Add debug middleware first
+    "gira.middleware.DocumentDebugMiddleware",  # Add debug middleware first
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -118,13 +118,13 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "EXCEPTION_HANDLER": "mira.utils.response.custom_exception_handler",
+    "EXCEPTION_HANDLER": "gira.utils.response.custom_exception_handler",
 }
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://mira.medgentics.com",
+    "https://gira.medgentics.com",
 ]
 
 # Additional CORS settings for production
@@ -154,7 +154,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-ROOT_URLCONF = "mira.urls"
+ROOT_URLCONF = "gira.urls"
 
 TEMPLATES = [
     {
@@ -171,7 +171,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "mira.wsgi.application"
+WSGI_APPLICATION = "gira.wsgi.application"
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
@@ -241,7 +241,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "src", "staticfiles")
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "ui", "static"),
-    os.path.join(BASE_DIR, "src", "mira_emails", "templates"),
+    os.path.join(BASE_DIR, "src", "gira_emails", "templates"),
 ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -282,7 +282,7 @@ LOGGING = {
     "loggers": {
         # Only configure specific loggers when debug is enabled
         **{
-            "mira.middleware": {
+            "gira.middleware": {
                 "handlers": ["console"] + (["rotating_file"] if not DEBUG else []),
                 "level": (
                     "INFO"

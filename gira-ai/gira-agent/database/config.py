@@ -30,7 +30,7 @@ def get_database_url():
     if not db_url:
         host = os.getenv("POSTGRES_HOST", "localhost")
         port = os.getenv("POSTGRES_PORT", "5432")
-        database = os.getenv("POSTGRES_DB", "mira_db")
+        database = os.getenv("POSTGRES_DB", "gira_db")
         username = os.getenv("POSTGRES_USER", "postgres")
         password = os.getenv("POSTGRES_PASSWORD", "password")
         

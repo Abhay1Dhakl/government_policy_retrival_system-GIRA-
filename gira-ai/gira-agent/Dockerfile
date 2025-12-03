@@ -1,4 +1,4 @@
-# MIRA Agent Dockerfile - OPTIMIZED VERSION
+# GIRA Agent Dockerfile - OPTIMIZED VERSION
 # This version skips local embedding model downloads
 # and uses OpenAI API for embeddings instead
 

@@ -9,8 +9,8 @@ __pycache__/
 .env.*
 
 # Ignore large model caches and transformers/sentence-transformers caches
-mira-ai/mira-agent/.cache/
-mira-ai/mira-agent/.cache/**
+gira-ai/gira-agent/.cache/
+gira-ai/gira-agent/.cache/**
 
 # Model artifacts and checkpoints
 **/blobs/

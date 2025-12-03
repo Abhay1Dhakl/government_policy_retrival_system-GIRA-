@@ -2,10 +2,10 @@ from django.db import models
 from src.constants.email_constants import EmailStatus
 
 
-class MiraEmail(models.Model):
+class GiraEmail(models.Model):
     class Meta:
-        db_table = "mira_emails"
-        app_label = "mira_emails"
+        db_table = "gira_emails"
+        app_label = "gira_emails"
 
     sender_email = models.EmailField()
     receiver_email = models.EmailField()

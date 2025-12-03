@@ -67,7 +67,7 @@ if os.name == "nt":
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="MIRA AI Medical Query Agent",
+    title="GIRA AI Medical Query Agent",
     description="AI-powered medical query assistant",
     version="1.0.0"
 )
@@ -134,7 +134,7 @@ async def health_check():
     """Health check endpoint for Docker healthcheck and monitoring"""
     return {
         "status": "healthy",
-        "service": "mira-agent",
+        "service": "gira-agent",
         "timestamp": datetime.utcnow().isoformat()
     }
 

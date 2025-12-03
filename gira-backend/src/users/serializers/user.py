@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from ..models import User
 
-from src.mira_emails.tasks import send_invite_mail
+from src.gira_emails.tasks import send_invite_mail
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -1,5 +1,5 @@
 """
-Relevance Feedback Loop for MIRA AI
+Relevance Feedback Loop for GIRA AI
 Collects user feedback to continuously improve retrieval quality
 """
 
