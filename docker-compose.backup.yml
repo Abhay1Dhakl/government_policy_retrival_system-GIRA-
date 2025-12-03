@@ -279,8 +279,8 @@ services:
     build:
       context: ./gira-backend
       dockerfile: Dockerfile
-    container_name: mira-celery
-    command: celery -A mira worker --loglevel=info
+    container_name: gira-celery
+    command: celery -A gira worker --loglevel=info
     env_file:
       - ./gira-backend/.env
     environment:
@@ -307,8 +307,8 @@ services:
     build:
       context: ./gira-backend
       dockerfile: Dockerfile
-    container_name: mira-celery-beat
-    command: celery -A mira beat --loglevel=info
+    container_name: gira-celery-beat
+    command: celery -A gira beat --loglevel=info
     env_file:
       - ./gira-backend/.env
     environment:
