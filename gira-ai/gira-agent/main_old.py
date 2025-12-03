@@ -189,11 +189,11 @@ pc = Pinecone(
 
 combined_vector_to_upsert = []
 # Create a dense index with integrated embedding
-index_name = "quickstart-py"
+index_name = os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")
 if not pc.has_index(index_name):
     pc.create_index(
         name=index_name,
-        dimension=384,
+        dimension=1024,
         metric="cosine",
         spec=ServerlessSpec(cloud="aws", 
                             region="us-east-1")

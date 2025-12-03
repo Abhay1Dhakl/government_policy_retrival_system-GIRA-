@@ -10,11 +10,11 @@ dotenv.load_dotenv()
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 # Create a dense index with integrated embedding
-index_name = "quickstart-py"
+index_name = os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")
 if not pc.has_index(index_name):
     pc.create_index(
         name=index_name,
-        dimension=384,
+        dimension=1024,
         metric="cosine",
         spec=ServerlessSpec(cloud="aws", 
                             region="us-east-1")
@@ -30,7 +30,7 @@ def get_embedding_data(text):
         if len(text) > max_length:
             text = text[:max_length]
             
-        # Generate Gemini embedding (384 dimensions)
+        # Generate Gemini embedding (1024 dimensions for llama-text-embed-v2)
         embedding_list = get_gemini_embedding(text, task_type="retrieval_document")
         
         # Validate embedding

@@ -61,7 +61,7 @@ mcp = FastMCP(
     debug=False
 )
 
-document_index_host = pc.describe_index(name="quickstart-py").host
+document_index_host = pc.describe_index(name=os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")).host
 document_index = pc.Index(host=document_index_host, grpc_config=GRPCClientConfig(secure=False))
 
 # Global thread pool for CPU-intensive tasks
@@ -292,7 +292,7 @@ def get_cached_gemini_embedding(query: str, task_type: str = "retrieval_query") 
     return get_gemini_embedding(query, task_type=task_type)
 
 async def get_embedding_async(query: str, task_type: str = "retrieval_query") -> List[float]:
-    """Get embedding asynchronously using Gemini API (384 dimensions)"""
+    """Get embedding asynchronously using Gemini API (1024 dimensions for llama-text-embed-v2)"""
     
     if not gemini_available:
         print("⚠️ Gemini API not available", file=sys.stderr)

@@ -22,9 +22,9 @@ class Settings:
     DEEPSEEK_API_KEY: Optional[str] = os.getenv("DEEPSEEK_API_KEY")
     
     # Pinecone Configuration
-    PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY", "")
+    PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY", "pcsk_4ejBDz_ArAWn2jdDCkg72whK2GfY9pWyXZDBapcFwovdCrTsxRZrcwG285Yb5BKUyDQ4Cx")
     PINECONE_ENVIRONMENT: str = os.getenv("PINECONE_ENVIRONMENT", "aped-4627-b74a")
-    PINECONE_INDEX_NAME: str = os.getenv("PINECONE_INDEX_NAME", "quickstart-py")
+    PINECONE_INDEX_NAME: str = os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")
     
     # ========== MinIO Configuration ==========
     MINIO_ENDPOINT: Optional[str] = os.getenv("MINIO_ENDPOINT")
