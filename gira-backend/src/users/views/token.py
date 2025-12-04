@@ -12,7 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
-from src.mira.utils.response import api_response
+from src.gira.utils.response import api_response
 from ..serializers.token import (
     UserTokenSerializer,
     RefreshTokenSerializer,
@@ -111,28 +111,43 @@ class TokenViewSet(GenericViewSet):
             email = idinfo["email"]
 
             try:
-
                 user = User.objects.get(email=email)
-                refresh = CustomTokenObtainPairSerializer.get_token(user)
+                
+            except User.DoesNotExist:
+                # Auto-create user from Google OAuth
+                # Extract name from Google data
+                full_name = idinfo.get("name", "")
+                given_name = idinfo.get("given_name", "")
+                family_name = idinfo.get("family_name", "")
+                
+                # Use given_name/family_name if available, otherwise split full name
+                first_name = given_name if given_name else full_name.split()[0] if full_name else ""
+                last_name = family_name if family_name else " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else ""
+                
+                # Create user without password (OAuth only)
+                user = User.objects.create_user(
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
                 user.is_active = True
                 user.save()
+            
+            # Generate tokens for existing or newly created user
+            refresh = CustomTokenObtainPairSerializer.get_token(user)
+            user.is_active = True
+            user.save()
 
-                data = {
-                    "refresh_token": str(refresh),
-                    "access_token": str(refresh.access_token),
-                    "has_details": user.has_details,
-                }
-                return api_response(
-                    data=data,
-                    message="Token generated successfully",
-                    status_code=status.HTTP_200_OK,
-                )
-
-            except User.DoesNotExist:
-                return HttpResponse(
-                    "User not found or you're not invited to the organization",
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+            data = {
+                "refresh_token": str(refresh),
+                "access_token": str(refresh.access_token),
+                "has_details": user.has_details,
+            }
+            return api_response(
+                data=data,
+                message="Token generated successfully",
+                status_code=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             return api_response(

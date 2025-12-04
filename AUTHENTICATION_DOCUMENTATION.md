@@ -275,7 +275,7 @@ REST_FRAMEWORK = {
 ```python
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://gira.medgentics.com",
+    "https://gira.govinfo.com",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -379,7 +379,7 @@ OAUTH_CLIENT_ID=your-google-client-id
 
 # CORS
 CORS_ORIGINS_DEV=http://localhost:3000
-CORS_ORIGINS_PROD=https://gira.medgentics.com
+CORS_ORIGINS_PROD=https://gira.govinfo.com
 ```
 
 ### Frontend (.env.local)

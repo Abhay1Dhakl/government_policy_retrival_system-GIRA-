@@ -3,30 +3,31 @@ import { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
-interface LoginFormProps {
-  email: string;
-  password: string;
-  onEmailChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
-  onLogin: (e: React.FormEvent) => Promise<void>;
+interface RegisterFormProps {
+  formData: {
+    email: string;
+    password: string;
+    passwordConfirm: string;
+    firstName: string;
+    lastName: string;
+  };
+  onFormDataChange: (data: any) => void;
+  onRegister: (e: React.FormEvent) => Promise<void>;
   onGoogleSignIn: (credential: string) => Promise<void>;
   isLoading: boolean;
   error?: string;
 }
 
-export default function LoginForm({ 
-  email, 
-  password, 
-  onEmailChange, 
-  onPasswordChange, 
-  onLogin,
+export default function RegisterForm({ 
+  formData, 
+  onFormDataChange, 
+  onRegister,
   onGoogleSignIn,
   isLoading,
   error 
-}: LoginFormProps) {
+}: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [googleButtonLoaded, setGoogleButtonLoaded] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +35,6 @@ export default function LoginForm({
       const { google } = window as any;
       
       if (!google || !googleButtonRef.current) {
-        // Retry after a short delay if not loaded yet
         setTimeout(initializeGoogleSignIn, 100);
         return;
       }
@@ -57,7 +57,7 @@ export default function LoginForm({
             theme: "outline", 
             size: "large",
             width: googleButtonRef.current.offsetWidth,
-            text: "signin_with",
+            text: "signup_with",
           }
         );
       } catch (error) {
@@ -65,31 +65,36 @@ export default function LoginForm({
       }
     };
 
-    // Start initialization immediately
     initializeGoogleSignIn();
   }, [onGoogleSignIn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      return;
-    }
-    await onLogin(e);
+    await onRegister(e);
   };
 
+  const handleChange = (field: string, value: string) => {
+    onFormDataChange({
+      ...formData,
+      [field]: value
+    });
+  };
+
+  const isFormValid = formData.email && formData.password && formData.passwordConfirm && formData.firstName && formData.lastName;
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full">
         <div className="flex justify-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">Sign In</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Create Account</h1>
         </div>
         
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2 mb-6">
-              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-              <p className="text-red-700 text-sm">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-2 mb-6">
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-red-700 text-sm whitespace-pre-line">{error}</div>
             </div>
           )}
 
@@ -102,16 +107,41 @@ export default function LoginForm({
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              <span className="px-2 bg-white text-gray-500">Or register with email</span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                  placeholder="First Name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => handleChange('lastName', e.target.value)}
+                  placeholder="Last Name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
             <div>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="Email Address"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500"
                 required
@@ -122,8 +152,8 @@ export default function LoginForm({
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => onPasswordChange(e.target.value)}
+                value={formData.password}
+                onChange={(e) => handleChange('password', e.target.value)}
                 placeholder="Password"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500 pr-12"
                 required
@@ -139,46 +169,50 @@ export default function LoginForm({
               </button>
             </div>
             
-            <div className="flex items-center">
+            <div className="relative">
               <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                type={showPasswordConfirm ? "text" : "password"}
+                value={formData.passwordConfirm}
+                onChange={(e) => handleChange('passwordConfirm', e.target.value)}
+                placeholder="Confirm Password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500 pr-12"
+                required
                 disabled={isLoading}
               />
-              <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
-                Remember me
-              </label>
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                disabled={isLoading}
+              >
+                {showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
+            <div className="text-xs text-gray-500 mt-2">
+              Password must be at least 8 characters long
             </div>
             
             <button
               type="submit"
-              disabled={isLoading || !email || !password}
+              disabled={isLoading || !isFormValid}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Signing In...</span>
+                  <span>Creating Account...</span>
                 </div>
               ) : (
-                'Sign In'
+                'Create Account'
               )}
             </button>
           </form>
           
           <div className="text-center mt-6">
-            <a href="#" className="text-sm text-gray-600 hover:text-blue-600">
-              Forgot password?
-            </a>
-          </div>
-
-          <div className="text-center mt-4">
-            <span className="text-sm text-gray-600">Don't have an account? </span>
-            <Link href="/register" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              Sign Up
+            <span className="text-sm text-gray-600">Already have an account? </span>
+            <Link href="/login" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              Sign In
             </Link>
           </div>
         </div>

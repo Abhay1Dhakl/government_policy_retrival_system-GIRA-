@@ -17,7 +17,7 @@ async def query_mcp(user_query: str, llm: str, tools: List[str], country: str, u
     Query the MCP server using official MCP SDK - No LangChain required!
     
     Args:
-        user_query: The user's medical question
+        user_query: The user's government policy question
         llm: The LLM provider to use
         tools: List of tool names to use
         country: User's country
@@ -25,7 +25,7 @@ async def query_mcp(user_query: str, llm: str, tools: List[str], country: str, u
         
     Returns:
         tuple: (response, all_chunk_metadata)
-        - response: Medical information response with citations
+        - response: Government policy information response with citations
         - all_chunk_metadata: List of all retrieved chunk metadata
     """
     try:
@@ -164,7 +164,7 @@ async def query_mcp(user_query: str, llm: str, tools: List[str], country: str, u
                 
                 if not tool_calls:
                     print("[MCP] ERROR: Expected tool calls but got none")
-                    return "I apologize, but I couldn't access the medical database. Please try again.", []
+                    return "I apologize, but I couldn't access the government policy database. Please try again.", []
                 
                 tool_results = []
                 all_chunk_metadata = []  # Collect chunk metadata from all tool calls

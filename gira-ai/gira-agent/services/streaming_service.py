@@ -352,7 +352,7 @@ async def stream_ai_response(
         except Exception as e:
             print(f"[stream_query] ERROR: MCP query failed: {e}")
             full_response = (
-                "I apologize, but I'm currently unable to access the medical document database to answer your question. "
+                "I apologize, but I'm currently unable to access the government policy document database to answer your question. "
                 "The service appears to be temporarily unavailable. Please try again in a few moments."
             )
             all_chunk_metadata = []

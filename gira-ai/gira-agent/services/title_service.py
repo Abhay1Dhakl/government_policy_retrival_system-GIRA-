@@ -1,6 +1,6 @@
 """
 Title Generation Service
-Generates concise titles for medical queries using LLM
+Generates concise titles for government policy queries using LLM
 """
 import os
 import requests
@@ -15,7 +15,7 @@ def generate_title(user_query: str) -> str:
     Generate a concise title for the user's query using OpenAI's GPT model.
     
     Args:
-        user_query: The user's medical question
+        user_query: The user's government policy question
         
     Returns:
         Generated title or "Untitled Query" on error
@@ -31,7 +31,7 @@ def generate_title(user_query: str) -> str:
             "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
         }
         
-        prompt = f"Generate a concise title (max 10 words) for the following medical question:\n\n{user_query}\n\nTitle:"
+        prompt = f"Generate a concise title (max 10 words) for the following government policy question:\n\n{user_query}\n\nTitle:"
         
         payload = {
             "model": settings.DEFAULT_LLM_MODEL,

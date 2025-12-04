@@ -4,7 +4,7 @@ import re
 
 def process_mcp_response(result: any, tool_name: str) -> tuple[str, list]:
     """
-    Process MCP server response and extract meaningful medical content for the LLM.
+    Process MCP server response and extract meaningful government policy content for the LLM.
     
     Args:
         result: The raw result from MCP server tool

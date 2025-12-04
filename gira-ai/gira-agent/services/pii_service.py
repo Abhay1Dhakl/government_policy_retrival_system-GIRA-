@@ -120,7 +120,7 @@ def detect_pii(text: str) -> Dict:
                 logger.info("Analyzing text with Presidio...")
                 analyzer_results = analyzer.analyze(text=text, language='en')
 
-                # Filter results to only include PERSON entities to avoid flagging medical terms
+                # Filter results to only include PERSON entities to avoid flagging government policy terms
                 original_count = len(analyzer_results)
                 allowed_entities = ["PERSON"]
                 analyzer_results = [res for res in analyzer_results if res.entity_type in allowed_entities]

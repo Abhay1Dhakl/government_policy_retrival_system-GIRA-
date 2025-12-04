@@ -39,8 +39,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    console.log('Proxying login request to:', `${API_BASE_URL}/token/`);
-    console.log('Request body:', { email: body.email, password: '[HIDDEN]' });
+    console.log('Proxying registration request to:', `${API_BASE_URL}/users/register/`);
+    console.log('Request body:', { 
+      email: body.email, 
+      first_name: body.first_name,
+      last_name: body.last_name,
+      password: '[HIDDEN]',
+      password_confirm: '[HIDDEN]'
+    });
 
     // Try to get CSRF token
     const csrfToken = await getCSRFToken();
@@ -55,10 +61,10 @@ export async function POST(request: NextRequest) {
     // Add CSRF token if available
     if (csrfToken) {
       headers['X-CSRFTOKEN'] = csrfToken;
-      headers['X-CSRFToken'] = csrfToken; // Some APIs expect this format
+      headers['X-CSRFToken'] = csrfToken;
     }
 
-    const response = await fetch(`${API_BASE_URL}/token/`, {
+    const response = await fetch(`${API_BASE_URL}/users/register/`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
@@ -79,18 +85,18 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: data.message || data.detail || data.error || 'Authentication failed',
+          error: data.message || data.detail || data.error || 'Registration failed',
           status: response.status,
-          details: data
+          data: data.data || data.details || data
         },
         { status: response.status }
       );
     }
 
-    console.log('Login successful, returning data');
+    console.log('Registration successful, returning data');
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Auth proxy error:', error);
+    console.error('Registration proxy error:', error);
     return NextResponse.json(
       {
         error: 'Internal server error',

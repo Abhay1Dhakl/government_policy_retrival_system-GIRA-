@@ -6,10 +6,11 @@ from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from ..models import User
-from ..serializers.user import UserSerializer, UserCreateSerializer
-from src.mira.utils.response import api_response
+from ..serializers.user import UserSerializer, UserCreateSerializer, UserRegistrationSerializer
+from src.gira.utils.response import api_response
 
 
 class UserViewSet(GenericViewSet):
@@ -21,7 +22,7 @@ class UserViewSet(GenericViewSet):
         return super().get_queryset().filter(is_active=True).order_by("-created_at")
 
     def get_permissions(self):
-        if self.action == "generate_token":
+        if self.action == "generate_token" or self.action == "register":
             self.permission_classes = [AllowAny]
         elif self.action == "update_user" or self.action == "user_details":
             self.permission_classes = [IsAuthenticated]
@@ -30,6 +31,8 @@ class UserViewSet(GenericViewSet):
     def get_serializer_class(self):
         if self.action == "create":
             return UserCreateSerializer
+        elif self.action == "register":
+            return UserRegistrationSerializer
         else:
             return self.serializer_class
 
@@ -82,4 +85,29 @@ class UserViewSet(GenericViewSet):
             data=serializer.data,
             message="User details retrieved successfully",
             status_code=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path="register")
+    def register(self, request: Request) -> Response:
+        """
+        Public endpoint for user self-registration.
+        Creates a new user account and returns JWT tokens immediately.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Generate JWT tokens for immediate login
+        refresh = RefreshToken.for_user(user)
+        
+        return api_response(
+            data={
+                "user": UserSerializer(user).data,
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
+            },
+            message="User registered successfully",
+            status_code=status.HTTP_201_CREATED,
         )

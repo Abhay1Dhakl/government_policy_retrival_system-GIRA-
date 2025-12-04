@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.viewsets import GenericViewSet
-from src.mira.utils.response import api_response
+from src.gira.utils.response import api_response
 
 from .models import Document
 from .serializers import DocumentSerializer

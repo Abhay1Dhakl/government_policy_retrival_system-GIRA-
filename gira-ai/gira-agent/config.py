@@ -82,15 +82,15 @@ class Settings:
             
             # Fallback for production
             if not origins:
-                origins = ["https://gira-backend.medgentics.com", "https://gira.medgentics.com"]
+                origins = ["https://gira-backend.govinfo.com", "https://gira.govinfo.com"]
             
             # Add internal Docker network origins
             internal_origins = [
                 "http://gira-backend:8082",
                 "http://172.21.0.6:8082",
                 "http://gira-backend",
-                "https://gira-backend.medgentics.com",
-                "http://gira-backend.medgentics.com",
+                "https://gira-backend.govinfo.com",
+                "http://gira-backend.govinfo.com",
             ]
             origins.extend(internal_origins)
         else:

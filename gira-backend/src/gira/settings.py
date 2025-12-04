@@ -36,12 +36,12 @@ ALLOWED_HOSTS = [
     "gira-backend",
     "0.0.0.0",
     "*",
-    "gira.medgentics.com",
+    "gira.govinfo.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://gira.medgentics.com",
-    "https://gira-backend.medgentics.com",
+    "https://gira.govinfo.com",
+    "https://gira-backend.govinfo.com",
 ]
 
 
@@ -124,7 +124,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://gira.medgentics.com",
+    "https://gira.govinfo.com",
 ]
 
 # Additional CORS settings for production

@@ -34,7 +34,7 @@ def get_embedding_data(text):
         embedding_list = get_gemini_embedding(text, task_type="retrieval_document")
         
         # Validate embedding
-        if embedding_list is None or len(embedding_list) != 384:
+        if embedding_list is None or len(embedding_list) != 1024:
             print(f"Warning: Failed to generate valid Gemini embedding")
             return None
             
@@ -110,7 +110,7 @@ async def store_document(data, text_content=None):
         embedding = get_embedding_data(chunk_text)
         
         # Validate embedding
-        if not embedding or len(embedding) != 384:
+        if not embedding or len(embedding) != 1024:
             continue
         
         # Clean metadata - remove None values and ensure proper types

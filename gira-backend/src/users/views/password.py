@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 
-from src.mira.utils.response import api_response
+from src.gira.utils.response import api_response
 from ..serializers.password import PasswordSerializer
 from ..models import User
 

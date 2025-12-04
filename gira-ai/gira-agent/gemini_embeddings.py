@@ -62,11 +62,11 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
         
         embedding = result['embedding']
         
-        # Gemini returns 768 dimensions, we need 384 for Pinecone
-        # Simple dimensionality reduction: take first 384 dimensions
-        # This is acceptable since the most important information is in early dimensions
-        if len(embedding) > 384:
-            embedding = embedding[:384]
+        # Gemini returns 768 dimensions, we need 1024 for Pinecone
+        # Pad with zeros to reach 1024 dimensions
+        if len(embedding) < 1024:
+            padding = [0.0] * (1024 - len(embedding))
+            embedding.extend(padding)
         
         return embedding
         
@@ -90,8 +90,8 @@ def test_gemini_embeddings():
         return False
     
     try:
-        embedding = get_gemini_embedding("test medical query about azithromycin")
-        if embedding and len(embedding) == 384:
+        embedding = get_gemini_embedding("test government policy query about education reform")
+        if embedding and len(embedding) == 1024:
             print(f"✅ Gemini embeddings working! Dimension: {len(embedding)}")
             return True
         else:
