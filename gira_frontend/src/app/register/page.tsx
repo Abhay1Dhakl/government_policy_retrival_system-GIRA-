@@ -10,7 +10,8 @@ export default function RegisterPage() {
     password: '',
     passwordConfirm: '',
     firstName: '',
-    lastName: ''
+    lastName: '',
+    country: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,9 +35,10 @@ export default function RegisterPage() {
         password: formData.password,
         password_confirm: formData.passwordConfirm,
         first_name: formData.firstName,
-        last_name: formData.lastName
+        last_name: formData.lastName,
+        country: formData.country
       });
-      
+
       const { tokens } = response.data;
       const { access, refresh } = tokens;
 
@@ -55,7 +57,7 @@ export default function RegisterPage() {
       router.push('/users');
     } catch (error: any) {
       console.error('Registration failed:', error);
-      
+
       // Handle validation errors from backend
       if (error.response?.data?.data) {
         const errors = error.response.data.data;
@@ -80,7 +82,7 @@ export default function RegisterPage() {
 
     try {
       const response = await authService.googleSignIn(credential);
-      
+
       const { access_token, refresh_token, has_details } = response.data;
 
       if (!access_token) {

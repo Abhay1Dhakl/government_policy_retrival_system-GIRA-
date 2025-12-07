@@ -10,6 +10,7 @@ interface RegisterFormProps {
     passwordConfirm: string;
     firstName: string;
     lastName: string;
+    country: string;
   };
   onFormDataChange: (data: any) => void;
   onRegister: (e: React.FormEvent) => Promise<void>;
@@ -18,13 +19,13 @@ interface RegisterFormProps {
   error?: string;
 }
 
-export default function RegisterForm({ 
-  formData, 
-  onFormDataChange, 
+export default function RegisterForm({
+  formData,
+  onFormDataChange,
   onRegister,
   onGoogleSignIn,
   isLoading,
-  error 
+  error
 }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
@@ -33,7 +34,7 @@ export default function RegisterForm({
   useEffect(() => {
     const initializeGoogleSignIn = () => {
       const { google } = window as any;
-      
+
       if (!google || !googleButtonRef.current) {
         setTimeout(initializeGoogleSignIn, 100);
         return;
@@ -53,8 +54,8 @@ export default function RegisterForm({
 
         google.accounts.id.renderButton(
           googleButtonRef.current,
-          { 
-            theme: "outline", 
+          {
+            theme: "outline",
             size: "large",
             width: googleButtonRef.current.offsetWidth,
             text: "signup_with",
@@ -88,7 +89,7 @@ export default function RegisterForm({
         <div className="flex justify-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800">Create Account</h1>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Error Message */}
           {error && (
@@ -148,7 +149,18 @@ export default function RegisterForm({
                 disabled={isLoading}
               />
             </div>
-            
+
+            <div>
+              <input
+                type="text"
+                value={formData.country}
+                onChange={(e) => handleChange('country', e.target.value)}
+                placeholder="Country (Optional)"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500"
+                disabled={isLoading}
+              />
+            </div>
+
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -168,7 +180,7 @@ export default function RegisterForm({
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            
+
             <div className="relative">
               <input
                 type={showPasswordConfirm ? "text" : "password"}
@@ -192,7 +204,7 @@ export default function RegisterForm({
             <div className="text-xs text-gray-500 mt-2">
               Password must be at least 8 characters long
             </div>
-            
+
             <button
               type="submit"
               disabled={isLoading || !isFormValid}
@@ -208,7 +220,7 @@ export default function RegisterForm({
               )}
             </button>
           </form>
-          
+
           <div className="text-center mt-6">
             <span className="text-sm text-gray-600">Already have an account? </span>
             <Link href="/login" className="text-sm text-blue-600 hover:text-blue-700 font-medium">

@@ -86,7 +86,7 @@ async def store_document(data, text_content=None):
             "document_type": data.get("document_type"),
             "source_type": data.get("source_type"),
             "title": data.get("document_metadata", {}).get("title"),
-            "language": data.get("document_metadata", {}).get("language"),
+            "language": chunk.get("language") or data.get("document_metadata", {}).get("language"),  # Use chunk language if available
             "region": data.get("document_metadata", {}).get("region"),
             "author": data.get("document_metadata", {}).get("author"),
             "tags": data.get("document_metadata", {}).get("tags"),
@@ -142,16 +142,28 @@ async def store_document(data, text_content=None):
             "chunks_stored": 0
         }
     
-    # Upsert all chunks in a single request
+    # Upsert in batches to avoid exceeding Pinecone's 4MB limit
+    # Pinecone limit: 4MB per request. Each vector with metadata is ~10-15KB
+    # Safe batch size: 100 vectors per batch (roughly 1-1.5MB)
+    BATCH_SIZE = 100
+    total_upserted = 0
+    
     try:
-        upsert_response = index.upsert(vectors_to_upsert)
+        for i in range(0, len(vectors_to_upsert), BATCH_SIZE):
+            batch = vectors_to_upsert[i:i + BATCH_SIZE]
+            print(f"Upserting batch {i//BATCH_SIZE + 1}/{(len(vectors_to_upsert) + BATCH_SIZE - 1)//BATCH_SIZE} ({len(batch)} vectors)")
+            upsert_response = index.upsert(batch)
+            total_upserted += len(batch)
+            print(f"✅ Batch upserted successfully: {upsert_response.get('upserted_count', len(batch))} vectors")
     except Exception as upsert_error:
         print(f"Upsert failed: {upsert_error}")
+        print(f"Successfully upserted {total_upserted} vectors before error")
         raise
 
+    print(f"✅ All vectors upserted: {total_upserted} total chunks")
     return {
         "instance_id": instance_id,
         "status": "stored",
-        "chunks_stored": len(chunks),
+        "chunks_stored": total_upserted,
         "last_ingested_at": datetime.utcnow().isoformat()
     }

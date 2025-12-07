@@ -1,14 +1,19 @@
 """
-Professional Healthcare Document Chunking System
-Fixed version with proper page-aware chunking
+Professional Government Document Chunking System - Multilingual Support
+Fixed version with proper page-aware chunking and language detection
 """
 import re
 import uuid
 import hashlib
+import sys
+import os
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 from enum import Enum
 from logging_config import get_logger
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 logger = get_logger(__name__)
 
@@ -25,6 +30,16 @@ try:
 except ImportError:
     NLTK_AVAILABLE = False
     sent_tokenize = lambda text: re.split(r'(?<=[.!?])\s+', text)
+
+# Import language detector
+try:
+    from utils.language_detector import detect_language, get_language_name
+    LANGUAGE_DETECTION_AVAILABLE = True
+except ImportError:
+    LANGUAGE_DETECTION_AVAILABLE = False
+    detect_language = lambda text: "en"
+    get_language_name = lambda code: "English"
+    logger.warning("Language detection not available, defaulting to English")
 
 
 @dataclass
@@ -220,19 +235,23 @@ class UniversalHealthcareChunker:
     
     def healthcare_semantic_chunking(self, text: str, page_number: int = 1) -> List[Dict]:
         """
-        Main chunking method - handles text from single page
+        Main chunking method - handles text from single page with language detection
         
         Args:
             text: Text to chunk (should be from ONE page)
             page_number: The page number this text belongs to
             
         Returns:
-            List of chunks with correct page numbers
+            List of chunks with correct page numbers and language metadata
         """
         if not text or not text.strip():
             logger.warning("Empty text provided")
             return []
         
+        # Detect language
+        detected_lang = detect_language(text)
+        lang_name = get_language_name(detected_lang)
+        print(f"[CHUNKER] Page {page_number}: Detected language: {lang_name} ({detected_lang})")
         print(f"[CHUNKER] Page {page_number}: Starting chunking ({len(text)} chars)")
         
         normalized_text = self.normalizer.normalize(text)
@@ -358,6 +377,39 @@ class UniversalHealthcareChunker:
             except Exception:
                 sentences = re.split(r'(?<=[.!?])\s+', text)
             
+            # For short documents, use smaller chunk size to ensure multiple chunks
+            # For very short texts, split by sentences regardless of length
+            total_length = len(text)
+            if total_length < 100:
+                # For very short documents, split into roughly equal parts by sentences
+                num_chunks = min(len(sentences), max(2, len(sentences) // 2 + 1))
+                sentences_per_chunk = max(1, len(sentences) // num_chunks)
+                
+                current_sentences = []
+                chunk_idx = 0
+                
+                for i, sentence in enumerate(sentences):
+                    current_sentences.append(sentence)
+                    if (i + 1) % sentences_per_chunk == 0 or i == len(sentences) - 1:
+                        chunk_text = " ".join(current_sentences)
+                        if chunk_text.strip():
+                            chunk = self._create_chunk(
+                                text=chunk_text.strip(),
+                                section_title="DOCUMENT_CONTENT",
+                                section_idx=0,
+                                chunk_idx=chunk_idx,
+                                page_number=page_number,
+                                start_sentence_idx=0,
+                                end_sentence_idx=0
+                            )
+                            chunks.append(chunk)
+                            chunk_idx += 1
+                        current_sentences = []
+                
+                return chunks
+            else:
+                effective_chunk_size = min(self.config.chunk_size, max(total_length // 3, 50))
+            
             current_text = ""
             chunk_idx = 0
             
@@ -366,7 +418,7 @@ class UniversalHealthcareChunker:
                 if not sentence:
                     continue
                 
-                if len(current_text) + len(sentence) > self.config.chunk_size and current_text:
+                if len(current_text) + len(sentence) > effective_chunk_size and current_text:
                     chunk = self._create_chunk(
                         text=current_text.strip(),
                         section_title="DOCUMENT_CONTENT",
@@ -397,6 +449,7 @@ class UniversalHealthcareChunker:
             return chunks
         
         # Otherwise use paragraph-based chunking
+        effective_chunk_size = min(self.config.chunk_size, max(len(text) // 3, 50))
         current_text = ""
         chunk_idx = 0
         
@@ -405,7 +458,7 @@ class UniversalHealthcareChunker:
             if not paragraph:
                 continue
             
-            if len(current_text) + len(paragraph) > self.config.chunk_size and current_text:
+            if len(current_text) + len(paragraph) > effective_chunk_size and current_text:
                 chunk = self._create_chunk(
                     text=current_text.strip(),
                     section_title="DOCUMENT_CONTENT",
@@ -445,13 +498,17 @@ class UniversalHealthcareChunker:
         start_sentence_idx: int,
         end_sentence_idx: int
     ) -> Dict:
-        """Create chunk with metadata"""
+        """Create chunk with metadata including language detection"""
         clean_text = text.strip()
+        
+        # Detect language for this chunk
+        chunk_language = detect_language(clean_text)
         
         return {
             "text": clean_text,
             "chunk_index": chunk_idx,
             "page": page_number,  # Correct page number
+            "language": chunk_language,  # Add language metadata
             "section_title": section_title,
             "section_code": self.section_extractor.extract_section_number(section_title),
             "section_index": section_idx,
@@ -468,7 +525,8 @@ class UniversalHealthcareChunker:
             "normalized_text": self.normalizer.normalize_for_metadata(clean_text),
             "metadata": {
                 "section": section_title,
-                "processing_method": "healthcare_semantic"
+                "processing_method": "healthcare_semantic",
+                "language": chunk_language
             }
         }
 

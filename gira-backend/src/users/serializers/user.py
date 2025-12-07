@@ -58,7 +58,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["email", "password", "password_confirm", "first_name", "last_name"]
+        fields = ["email", "password", "password_confirm", "first_name", "last_name", "country"]
 
     def validate(self, attrs):
         # Check if passwords match
@@ -83,6 +83,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             password=validated_data["password"],
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),
+            country=validated_data.get("country", ""),
         )
         user.is_active = True
         user.save()
