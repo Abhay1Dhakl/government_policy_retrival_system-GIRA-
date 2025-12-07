@@ -1,6 +1,7 @@
 "use client"
 
-import { PlusCircle, Search, MessageSquare, Moon, Sun } from "lucide-react"
+import { useState } from "react"
+import { PlusCircle, Search, MessageSquare, Moon, Sun, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import authService from "@/lib/auth"
 import { useDarkMode } from "@/context/DarkModeContext"
@@ -46,6 +47,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const router = useRouter()
   const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
 
   const handleConversationClick = (pageId: string) => {
     if (onConversationClick) {
@@ -74,35 +77,85 @@ export default function Sidebar({
     return title
   }
 
+  // Filter conversations based on search query
+  const filteredChatHistory = searchQuery
+    ? chatHistory.filter((session) => {
+        const title = getSessionTitle(session).toLowerCase()
+        const query = searchQuery.toLowerCase()
+        return title.includes(query) || session.first_message?.toLowerCase().includes(query)
+      })
+    : chatHistory
+
+  const toggleSearch = () => {
+    setIsSearching(!isSearching)
+    if (isSearching) {
+      setSearchQuery("")
+    }
+  }
+
   return (
     <div className="w-72 bg-gray-50 border-r border-gray-200 flex flex-col h-screen dark:bg-gray-900 dark:border-gray-700">
       {/* Top Section */}
       <div className="p-6 space-y-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">MIRA</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">GIRA</h2>
         {sidebarItems.map((item, index) => (
           <button
             key={index}
             onClick={() => {
               if (item.label === "New Chat" && onNewChatClick) {
                 onNewChatClick()
+              } else if (item.label === "Search Conversation") {
+                toggleSearch()
               }
             }}
-            className="w-full flex items-center gap-3 p-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            className={`w-full flex items-center gap-3 p-3 text-sm rounded-lg transition-colors duration-200 ${
+              isSearching && item.label === "Search Conversation"
+                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
           >
             <item.icon className={`w-5 h-5 ${item.color}`} />
             <span className="font-medium">{item.label}</span>
           </button>
         ))}
+        
+        {/* Search Input */}
+        {isSearching && (
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations..."
+              className="w-full px-4 py-2 pr-10 text-sm border border-gray-300 dark:border-gray-600 rounded-lg 
+                         bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              autoFocus
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Conversations List */}
       <div className="flex-1 px-6 py-4 overflow-y-auto">
-        <h3 className="text-sm font-semibold text-gray-500 mb-3">Past Conversations</h3>
+        <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
+          {searchQuery ? `Search Results (${filteredChatHistory.length})` : "Past Conversations"}
+        </h3>
         <div className="space-y-2">
-          {chatHistory.length === 0 ? (
-            <p className="text-sm text-gray-400">No conversations yet.</p>
+          {filteredChatHistory.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              {searchQuery ? "No conversations found" : "No conversations yet."}
+            </p>
           ) : (
-            chatHistory.map((session) => (
+            filteredChatHistory.map((session) => (
               <button
                   key={session.page_id}
                   onClick={() => handleConversationClick(session.page_id)}
@@ -110,24 +163,24 @@ export default function Sidebar({
                   className={`w-full text-left p-3 text-sm rounded-lg transition-colors duration-200 flex items-start gap-3 ${
                     selectedPageId === session.page_id
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                   aria-current={selectedPageId === session.page_id ? 'true' : undefined}
                 >
                 <MessageSquare className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p
-                    className="font-medium text-gray-800 truncate whitespace-nowrap overflow-hidden"
+                    className="font-medium text-gray-800 dark:text-gray-200 truncate whitespace-nowrap overflow-hidden"
                     title={getSessionTitle(session)}
                   >
                     {getSessionTitle(session)}
                   </p>
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       {formatDistanceToNow(new Date(session.last_activity))}
                     </p>
                     {session.message_count > 1 && (
-                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full">
                         {session.message_count} msgs
                       </span>
                     )}
@@ -142,7 +195,7 @@ export default function Sidebar({
       {/* Bottom Section */}
 
       {/* Dark Mode Toggle */}
-      <div className="p-2 border-t border-gray-200">
+      <div className="p-2 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={toggleDarkMode}
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium 

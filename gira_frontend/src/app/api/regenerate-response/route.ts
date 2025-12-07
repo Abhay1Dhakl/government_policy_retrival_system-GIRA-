@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,10 +9,14 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization")
 
     if (!authHeader) {
-      return NextResponse.json({ error: "Authorization header is required" }, { status: 401 })
+      return new Response(JSON.stringify({ error: "Authorization header is required" }), { 
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      })
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_API_BASE_URL}/query/regenerate_response`, {
+    // Forward the request to the backend - it returns a streaming response
+    const response = await fetch(`http://gira-agent:8081/api/v1/query/regenerate_response`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -28,19 +32,32 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      return NextResponse.json(
-        {
+      return new Response(
+        JSON.stringify({
           error: errorData.message || errorData.detail || "Regenerate request failed",
           status: response.status,
-        },
-        { status: response.status },
+        }),
+        { 
+          status: response.status,
+          headers: { "Content-Type": "application/json" }
+        }
       )
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    // Pass through the streaming response from backend
+    return new Response(response.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    })
   } catch (error) {
     console.error("Regenerate API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return new Response(JSON.stringify({ error: "Internal server error" }), { 
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    })
   }
 }

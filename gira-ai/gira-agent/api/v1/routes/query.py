@@ -10,7 +10,6 @@ import json
 from datetime import datetime
 
 from api.v1.models.requests import StreamingQueryRequest, RegenerationRequest, QueryRequest
-from services.pii_service import detect_pii
 from middleware.auth import decode_user_id_from_header
 from database.services import DatabaseService
 from database.config import create_tables
@@ -26,30 +25,13 @@ router = APIRouter(prefix="/query", tags=["Query"])
 @router.post("/stream_query")
 async def stream_query(req: StreamingQueryRequest, request: Request):
     """
-    Stream a medical query response in real-time
+    Stream a government policy query response in real-time
     
-    - Detects PII/PHI before processing
     - Streams response tokens/words/sentences
     - Stores conversation history
     """
     logger.info(f"Received streaming query: {req.user_query[:50]}...")
     create_tables()
-    
-    # PII Detection
-    pii_result = detect_pii(req.user_query)
-    if pii_result["has_high_risk_pii"]:
-        logger.warning(f"PII detected - blocking request")
-        return JSONResponse(
-            content={
-                "error": "PII/PHI detected. Please remove personal information before proceeding.",
-                "warning": pii_result["warning_message"],
-                "pii_detected": True,
-                "risk_level": pii_result["risk_level"],
-                "details": pii_result["details"],
-                "flagged_entities": pii_result.get("flagged_entities", [])
-            },
-            status_code=200
-        )
     
     # Decode user
     user_id, country = decode_user_id_from_header(request)
@@ -93,13 +75,13 @@ async def stream_query(req: StreamingQueryRequest, request: Request):
 @router.post("/regenerate_response")
 async def regenerate_response(req: RegenerationRequest, request: Request):
     """
-    Regenerate a previous response
+    Regenerate a previous response with streaming
     
     - Retrieves original conversation
-    - Checks for PII
-    - Generates new response
+    - Generates new response with same parameters
     """
     logger.info(f"Regenerating response for conversation: {req.conversation_id}")
+    create_tables()
     
     # Get original conversation
     conv_data = await DatabaseService.get_conversation(req.conversation_id)
@@ -109,33 +91,38 @@ async def regenerate_response(req: RegenerationRequest, request: Request):
     # Extract original query
     user_query = conv_data.get("user_query", "")
     
-    # PII check
-    pii_result = detect_pii(user_query)
-    if pii_result["has_high_risk_pii"]:
-        return JSONResponse(
-            content={
-                "error": "PII detected in original query",
-                "warning": "Start a new conversation without personal info"
-            },
-            status_code=400
-        )
-    
     # Decode user
     user_id, country = decode_user_id_from_header(request)
     if not user_id:
         raise HTTPException(status_code=401, detail="User ID not found")
     
-    try:
-        # TODO: Implement actual regeneration with MCP
-        # For now, return placeholder
-        logger.info(f"Regenerating conversation: {req.conversation_id}")
-        
-        return JSONResponse(content={
-            "message": "Regeneration endpoint - MCP integration pending",
-            "conversation_id": req.conversation_id,
-            "user_id": user_id
-        })
-        
-    except Exception as e:
-        logger.error(f"Regeneration failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to regenerate response")
+    # Get page_id from request or conversation data
+    page_id = req.page_id or conv_data.get("page_id", str(uuid.uuid4()))
+    
+    # Create a new streaming query request with the original query
+    streaming_req = StreamingQueryRequest(
+        page_id=page_id,
+        tools=req.tools,
+        llm=req.llm,
+        user_query=user_query,
+        stream_type="token"
+    )
+    
+    logger.info(f"Regenerating with query: {user_query[:50]}..., tools: {req.tools}, llm: {req.llm}")
+    
+    # Return streaming response
+    return StreamingResponse(
+        stream_ai_response(streaming_req, user_id, country, page_id, request),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept",
+            "Access-Control-Expose-Headers": "Content-Type"
+        }
+    )

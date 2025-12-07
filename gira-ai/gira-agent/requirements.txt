@@ -6,7 +6,6 @@ scikit-learn
 python-dotenv
 PyJWT
 sqlalchemy
-presidio_analyzer
 PyMuPDF
 minio
 python-docx
@@ -17,7 +16,6 @@ nltk
 openai
 anthropic
 psycopg2-binary
-spacy
 numpy
 # Google Gemini for embeddings (replaces sentence_transformers)
 google-generativeai>=0.3.0
