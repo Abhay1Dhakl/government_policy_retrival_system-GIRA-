@@ -34,10 +34,10 @@ def initialize_gemini():
 
 def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
     """
-    Get embeddings from Gemini API
+    Get multilingual embeddings from Gemini API
     
     Args:
-        text: Text to embed
+        text: Text to embed (supports ANY language - English, Arabic, French, Spanish, Chinese, etc.)
         task_type: One of:
             - "retrieval_query" (for search queries)
             - "retrieval_document" (for documents to be retrieved)
@@ -46,13 +46,17 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
             - "clustering" (for clustering tasks)
     
     Returns:
-        List of floats (768 dimensions) or None on error
+        List of floats (1024 dimensions) or None on error
+        
+    Note: Gemini text-embedding-004 model supports 100+ languages natively
     """
     if not initialize_gemini():
         return None
     
     try:
-        # Use text-embedding-004 model (768 dimensions)
+        # Use text-embedding-004 model (768 dimensions, multilingual)
+        # Supports: English, Arabic, French, Spanish, German, Chinese, Japanese, Korean, 
+        # Russian, Portuguese, Italian, Dutch, Turkish, Polish, and 100+ more languages
         result = genai.embed_content(
             model="models/text-embedding-004",
             content=text,

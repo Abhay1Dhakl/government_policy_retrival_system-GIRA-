@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     console.log('Proxying registration request to:', `${API_BASE_URL}/users/register/`);
-    console.log('Request body:', { 
-      email: body.email, 
+    console.log('Request body:', {
+      email: body.email,
       first_name: body.first_name,
       last_name: body.last_name,
       password: '[HIDDEN]',

@@ -650,3 +650,580 @@ Together, they create a hybrid AI system that:
 
 *For detailed implementation, refer to the source files referenced throughout this document.*
 
+---
+
+# Part 6: Technology Stack & Programming Languages
+
+## Frontend Technologies
+
+### **TypeScript**
+- **Purpose:** Type-safe programming language for building the frontend application
+- **Usage in GIRA:** Used extensively in Next.js components and React UI development
+- **Benefits:**
+  - Compile-time type checking prevents runtime errors
+  - Better IDE support and autocomplete
+  - Enhanced code readability and maintainability
+  - Interfaces and type definitions for component props
+- **Files:** `gira_frontend/src/**/*.tsx`, `gira_frontend/src/**/*.ts`
+- **Key Features in GIRA:**
+  ```typescript
+  // Type-safe component props
+  interface ChatProps {
+    query: string;
+    documentType: string;
+    onSubmit: (query: string) => Promise<void>;
+  }
+  
+  // Typed API responses
+  interface SearchResult {
+    id: string;
+    content: string;
+    score: number;
+    metadata: Record<string, any>;
+  }
+  ```
+
+### **Next.js**
+- **Purpose:** React framework for building production-ready web applications with Server-Side Rendering (SSR) and Static Generation
+- **Usage in GIRA:** Primary frontend framework for building the user interface
+- **Benefits:**
+  - Built-in API routes for backend integration
+  - Automatic code splitting and optimization
+  - Image optimization and performance enhancements
+  - File-based routing system for simplicity
+  - Support for both SSR and SSG
+- **Files:** `gira_frontend/`
+- **Key Components:**
+  - App Router (`src/app/`) - Modern Next.js 13+ routing
+  - API Routes (`src/app/api/`) - Serverless functions
+  - Pages (`src/app/login/`, `src/app/chat/`, `src/app/register/`)
+- **Usage Example:**
+  ```typescript
+  // App Router - Server Component
+  export default async function ChatPage() {
+    return (
+      <div>
+        <ChatInterface />
+      </div>
+    );
+  }
+  
+  // API Route - Handles backend communication
+  export async function POST(request: Request) {
+    const data = await request.json();
+    return Response.json({ success: true });
+  }
+  ```
+
+### **React.js**
+- **Purpose:** JavaScript library for building dynamic, interactive user interfaces with reusable components
+- **Usage in GIRA:** Component-based UI development for all frontend pages
+- **Benefits:**
+  - Component reusability reduces code duplication
+  - Virtual DOM for efficient rendering
+  - One-way data binding simplifies state management
+  - Extensive ecosystem and community support
+  - Context API for state management
+- **Files:** `gira_frontend/src/components/`, `gira_frontend/src/app/`
+- **Key Components:**
+  - **ChatInterface** - Main chat component for policy queries
+  - **DocumentUploader** - File upload functionality
+  - **AuthForms** - Login and registration forms
+  - **AdminDashboard** - User management interface
+- **Example:**
+  ```typescript
+  // Functional Component with Hooks
+  export function ChatInterface() {
+    const [messages, setMessages] = React.useState([]);
+    const [loading, setLoading] = React.useState(false);
+    
+    const handleSubmit = async (query: string) => {
+      setLoading(true);
+      const response = await fetch('/api/chat/query', {
+        method: 'POST',
+        body: JSON.stringify({ query })
+      });
+      setLoading(false);
+    };
+    
+    return (
+      <div className="chat-container">
+        {/* Component JSX */}
+      </div>
+    );
+  }
+  ```
+
+### **Tailwind CSS**
+- **Purpose:** Utility-first CSS framework for rapidly building custom designs without leaving HTML
+- **Usage in GIRA:** Styling all frontend components with responsive design
+- **Benefits:**
+  - Utility classes for rapid UI development
+  - Built-in responsive design (mobile-first approach)
+  - Dark mode support integrated
+  - Reduced CSS file size compared to traditional CSS
+  - Consistent design system across the application
+- **Files:** `gira_frontend/src/app/globals.css`, component className attributes
+- **Configuration:** `gira_frontend/tailwind.config.js`
+- **Usage Example:**
+  ```typescript
+  // Responsive Chat Interface
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      {/* Content */}
+    </div>
+  </div>
+  ```
+
+### **HTML & CSS**
+- **Purpose:** HTML provides structure and semantic markup; CSS provides styling and layout
+- **Usage in GIRA:**
+  - HTML: Document structure, semantic elements, accessibility
+  - CSS: Layout, colors, fonts, responsive design
+- **Benefits:**
+  - Clean separation of content and presentation
+  - SEO-friendly semantic HTML
+  - Accessibility features (ARIA attributes)
+  - Performance optimization through CSS optimization
+- **Files:** Next.js templates, component JSX structure
+
+---
+
+## Backend Technologies
+
+### **Python**
+- **Purpose:** High-level, interpreted programming language used for backend development and AI/ML services
+- **Usage in GIRA:** Primary language for backend API, AI agent, and data processing
+- **Benefits:**
+  - Rich ecosystem for AI/ML libraries
+  - Fast development and prototyping
+  - Excellent for data science and NLP tasks
+  - Large community and extensive documentation
+  - Easy to learn and maintain
+- **Files:** `gira-backend/`, `gira-ai/`
+- **Key Uses:**
+  - **Django** for REST API backend
+  - **FastAPI** for AI agent service
+  - **Celery** for async task processing
+  - **SQLAlchemy** for ORM
+
+### **Django**
+- **Purpose:** High-level Python web framework for building robust, scalable web applications
+- **Usage in GIRA:** Primary framework for backend REST API
+- **Benefits:**
+  - Model-View-Template (MVT) architecture
+  - Built-in ORM for database operations
+  - Automatic admin panel generation
+  - Comprehensive authentication and authorization
+  - Middleware system for request/response processing
+  - Security features (CSRF, SQL injection protection)
+- **Files:** `gira-backend/src/`
+- **Key Components:**
+  - **Models** (`users/models.py`, `documents/models.py`) - Database schema
+  - **Views** - Request handlers and business logic
+  - **Serializers** - DRF serializers for API responses
+  - **Authentication** - JWT, OAuth 2.0 integration
+- **Example:**
+  ```python
+  # Django Model
+  class User(AbstractBaseUser, PermissionsMixin):
+      email = models.EmailField(unique=True)
+      first_name = models.CharField(max_length=255)
+      is_active = models.BooleanField(default=False)
+      created_at = models.DateTimeField(auto_now_add=True)
+  
+  # Django REST Framework View
+  class UserProfileView(generics.RetrieveUpdateAPIView):
+      serializer_class = UserProfileSerializer
+      permission_classes = [IsAuthenticated]
+      
+      def get_object(self):
+          return self.request.user
+  ```
+
+### **FastAPI**
+- **Purpose:** Modern, fast Python web framework for building APIs with automatic documentation
+- **Usage in GIRA:** AI agent microservice for query processing and response generation
+- **Benefits:**
+  - Fast performance (comparable to Node.js and Go)
+  - Automatic OpenAPI documentation generation
+  - Built-in request validation using Pydantic
+  - Async/await support for concurrent requests
+  - Easy integration with background tasks
+  - Type hints for better code quality
+- **Files:** `gira-ai/gira-mcp-server/main.py`, `gira-ai/gira-agent/main.py`
+- **Key Endpoints:**
+  - `/api/v1/chat/query` - Process policy queries
+  - `/api/v1/documents/upload` - Document ingestion
+  - `/api/v1/search/semantic` - Semantic search
+  - `/health` - Health check endpoint
+- **Example:**
+  ```python
+  from fastapi import FastAPI, Depends
+  from pydantic import BaseModel
+  
+  app = FastAPI()
+  
+  class QueryRequest(BaseModel):
+      query: str
+      document_type: str
+      top_k: int = 10
+  
+  @app.post("/api/v1/chat/query")
+  async def process_query(request: QueryRequest):
+      """Process government policy query"""
+      results = await execute_hybrid_search(
+          query=request.query,
+          document_type=request.document_type,
+          top_k=request.top_k
+      )
+      return results
+  ```
+
+### **Django REST Framework (DRF)**
+- **Purpose:** Powerful and flexible toolkit for building REST APIs in Django
+- **Usage in GIRA:** Building RESTful API endpoints with serialization and validation
+- **Benefits:**
+  - Built-in authentication backends (JWT, OAuth)
+  - Request/response serialization
+  - Pagination and filtering
+  - API viewsets and routers
+  - Interactive API browsable interface
+  - Permission and throttling classes
+- **Files:** `gira-backend/src/users/serializers.py`, views, permissions
+- **Example:**
+  ```python
+  from rest_framework import serializers, viewsets
+  
+  class UserSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = User
+          fields = ['id', 'email', 'first_name', 'last_name']
+  
+  class UserViewSet(viewsets.ModelViewSet):
+      queryset = User.objects.all()
+      serializer_class = UserSerializer
+      permission_classes = [IsAuthenticated]
+  ```
+
+---
+
+## Database & Data Layer
+
+### **PostgreSQL**
+- **Purpose:** Powerful, open-source relational database for persistent data storage
+- **Usage in GIRA:** Primary database for user data, documents, and DPO feedback
+- **Benefits:**
+  - ACID compliance ensures data integrity
+  - Advanced data types (JSON, Arrays, Full-text search)
+  - Excellent for complex queries and transactions
+  - Strong security features
+  - Highly scalable and performant
+- **Container:** `postgres:16-alpine` in Docker Compose
+- **Databases:**
+  - `gira_db` - Main application database
+  - `airflow` - Apache Airflow metadata
+- **Tables:**
+  - `auth_user` - User authentication
+  - `documents_document` - Document metadata
+  - `rlhf_feedback` - DPO training data
+
+### **SQLAlchemy**
+- **Purpose:** Python SQL toolkit and Object-Relational Mapping (ORM) library
+- **Usage in GIRA:** ORM for database operations in FastAPI services
+- **Benefits:**
+  - Database-agnostic ORM
+  - Query builder with type safety
+  - Relationship management
+  - Session management for transactions
+  - Lazy loading and eager loading optimization
+- **Files:** `gira-ai/gira-agent/database/models.py`
+- **Example:**
+  ```python
+  from sqlalchemy import Column, String, Integer
+  from sqlalchemy.orm import Session
+  
+  class DPO_RLHF(Base):
+      __tablename__ = "rlhf_feedback"
+      rlhf_id = Column(Integer, primary_key=True)
+      user_query = Column(String(Text), nullable=False)
+      assistant_response = Column(Text, nullable=False)
+  
+  # Usage
+  def get_feedback(db: Session, user_id: str):
+      return db.query(DPO_RLHF).filter(
+          DPO_RLHF.user_id == user_id
+      ).all()
+  ```
+
+---
+
+## AI & Machine Learning
+
+### **Google Generative AI (Gemini)**
+- **Purpose:** Google's generative AI API for embeddings and language model capabilities
+- **Usage in GIRA:**
+  - Text embeddings for semantic search (768-dimensional vectors)
+  - LLM responses for policy queries
+  - Natural language understanding
+- **Benefits:**
+  - High-quality embeddings (superior to open-source alternatives)
+  - Multilingual support
+  - Fast API response times
+  - Cost-effective for production
+- **Implementation:**
+  ```python
+  import google.generativeai as genai
+  
+  async def get_embedding_async(text: str, task_type: str = "retrieval_document"):
+      """Get Google Gemini embeddings"""
+      model = "models/embedding-001"
+      embedding = await genai.embed_content(
+          model=model,
+          content=text,
+          task_type=task_type
+      )
+      return embedding["embedding"]
+  ```
+
+### **Pinecone**
+- **Purpose:** Vector database for storing and searching embeddings at scale
+- **Usage in GIRA:** Semantic search over government policy documents
+- **Benefits:**
+  - Hybrid search (dense + sparse vectors)
+  - Fast similarity search with filtering
+  - Metadata filtering capabilities
+  - Scalable to millions of vectors
+  - Built-in reranking support
+- **Configuration:**
+  - Index: `policy-embeddings`
+  - Dimension: 768 (Gemini embeddings)
+  - Metric: Cosine similarity
+- **Implementation:**
+  ```python
+  from pinecone import Pinecone
+  
+  pc = Pinecone(api_key=PINECONE_API_KEY)
+  index = pc.Index(PINECONE_INDEX_NAME)
+  
+  # Upsert embeddings
+  index.upsert(vectors=[
+      ("doc_001", embedding_vector, {"text": "...", "source": "..."})
+  ])
+  
+  # Query
+  results = index.query(vector=query_embedding, top_k=10, filter={"region": "us"})
+  ```
+
+### **Rank-BM25**
+- **Purpose:** Python implementation of BM25 algorithm for sparse, keyword-based search
+- **Usage in GIRA:** Hybrid search component for combining keyword and semantic signals
+- **Benefits:**
+  - Fast keyword matching
+  - IDF-weighted term importance
+  - Document length normalization
+  - Interpretable ranking
+- **Implementation:**
+  ```python
+  from rank_bm25 import BM25Okapi
+  
+  corpus = ["document one", "document two", "document three"]
+  tokenized_corpus = [doc.split() for doc in corpus]
+  bm25 = BM25Okapi(tokenized_corpus)
+  
+  query_tokens = "query terms".split()
+  scores = bm25.get_scores(query_tokens)
+  ```
+
+### **spaCy**
+- **Purpose:** Industrial-strength Natural Language Processing (NLP) library
+- **Usage in GIRA:** Named entity recognition, text preprocessing, and linguistic analysis
+- **Benefits:**
+  - Fast and accurate NLP operations
+  - Pre-trained language models
+  - Efficient text processing pipeline
+  - Entity recognition for policy terms
+- **Implementation:**
+  ```python
+  import spacy
+  
+  nlp = spacy.load("en_core_web_sm")
+  doc = nlp("Government policy on healthcare programs")
+  
+  for ent in doc.ents:
+      print(f"{ent.text} - {ent.label_}")
+  ```
+
+### **Presidio**
+- **Purpose:** PII (Personally Identifiable Information) detection and masking
+- **Usage in GIRA:** Privacy preservation by filtering sensitive user information
+- **Benefits:**
+  - Detects names, emails, phone numbers, etc.
+  - Pattern-based and ML-based detection
+  - Customizable recognizers
+  - Anonymization support
+- **Implementation:**
+  ```python
+  from presidio_analyzer import AnalyzerEngine
+  
+  analyzer = AnalyzerEngine()
+  results = analyzer.analyze(
+      text="My name is John Doe, email is john@example.com",
+      language="en"
+  )
+  ```
+
+### **PyMuPDF (fitz)**
+- **Purpose:** Library for reading and manipulating PDF documents
+- **Usage in GIRA:** PDF parsing, text extraction, and document processing
+- **Benefits:**
+  - Fast PDF processing
+  - Support for annotations and highlights
+  - Text extraction with layout preservation
+  - Page-level operations
+- **Implementation:**
+  ```python
+  import fitz
+  
+  doc = fitz.open("policy.pdf")
+  for page_num, page in enumerate(doc):
+      text = page.get_text()
+      # Process text content
+  ```
+
+### **OpenAI & Anthropic APIs**
+- **Purpose:** Alternative LLM providers for generating responses and embeddings
+- **Usage in GIRA:** Multiple LLM options for response generation
+- **Benefits:**
+  - High-quality language models
+  - Flexible API for different tasks
+  - Token-based pricing
+  - Support for different model sizes
+- **Configuration:**
+  ```python
+  OPENAI_API_KEY = "sk-..."
+  ANTHROPIC_API_KEY = "sk-ant-..."
+  ```
+
+---
+
+## Task Queue & Orchestration
+
+### **Celery**
+- **Purpose:** Distributed task queue for asynchronous job processing
+- **Usage in GIRA:** Background document processing, email notifications, batch operations
+- **Benefits:**
+  - Distributed task execution
+  - Task scheduling with Celery Beat
+  - Retry mechanisms
+  - Task monitoring and reporting
+  - Redis integration for message broker
+- **Configuration:**
+  ```python
+  from celery import Celery
+  
+  app = Celery('gira')
+  app.conf.broker_url = 'redis://redis:6379/0'
+  app.conf.result_backend = 'redis://redis:6379/0'
+  
+  @app.task
+  def process_document(document_id):
+      # Long-running task
+      pass
+  ```
+
+### **Apache Airflow**
+- **Purpose:** Workflow orchestration platform for managing complex data pipelines
+- **Usage in GIRA:** DPO training pipeline automation, document processing workflows
+- **Benefits:**
+  - DAG-based workflow definition
+  - Scheduled execution
+  - Dependency management
+  - Monitoring and alerting
+  - Data lineage tracking
+- **Files:** `gira-ai/gira-agent/airflow/dags/`
+- **DAGs:**
+  - `dpo_training_dag.py` - Weekly model fine-tuning
+
+---
+
+## Infrastructure & DevOps
+
+### **Docker**
+- **Purpose:** Containerization platform for packaging applications
+- **Usage in GIRA:** Containerizing all services for consistent deployment
+- **Benefits:**
+  - Environment consistency
+  - Easy scaling
+  - Microservices architecture
+  - Simplified dependency management
+- **Files:**
+  - `gira-backend/Dockerfile`
+  - `gira-ai/gira-agent/Dockerfile`
+  - `gira-ai/gira-mcp-server/Dockerfile`
+
+### **Docker Compose**
+- **Purpose:** Multi-container orchestration for local development
+- **Usage in GIRA:** Managing all services (PostgreSQL, Redis, MinIO, API services)
+- **Services:**
+  - PostgreSQL database
+  - Redis cache/broker
+  - MinIO object storage
+  - Django backend
+  - FastAPI agent
+  - Celery workers
+  - Airflow scheduler
+  - Nginx reverse proxy
+- **File:** `docker-compose.yml`
+
+### **Redis**
+- **Purpose:** In-memory data structure store for caching and message brokering
+- **Usage in GIRA:**
+  - Session caching
+  - Celery message broker
+  - Query result caching
+- **Benefits:**
+  - Extremely fast operations
+  - Supports complex data structures
+  - Atomic operations
+  - TTL support for cache expiration
+
+### **MinIO**
+- **Purpose:** S3-compatible object storage for file management
+- **Usage in GIRA:** Storing uploaded PDF documents and processed files
+- **Benefits:**
+  - S3 API compatibility
+  - Self-hosted alternative to AWS S3
+  - Scalable storage
+  - Access control and security
+
+---
+
+## Summary Table
+
+| Technology | Category | Purpose | Location |
+|-----------|----------|---------|----------|
+| **TypeScript** | Frontend | Type-safe JavaScript | `gira_frontend/src/` |
+| **Next.js** | Frontend | React framework | `gira_frontend/` |
+| **React** | Frontend | UI components | `gira_frontend/src/components/` |
+| **Tailwind CSS** | Frontend | Styling framework | `gira_frontend/tailwind.config.js` |
+| **Python** | Backend | Server language | `gira-backend/`, `gira-ai/` |
+| **Django** | Backend | Web framework | `gira-backend/` |
+| **FastAPI** | Backend | API framework | `gira-ai/gira-mcp-server/`, `gira-ai/gira-agent/` |
+| **PostgreSQL** | Database | Relational DB | Docker container |
+| **SQLAlchemy** | Database | ORM | `gira-ai/gira-agent/database/` |
+| **Google Gemini** | AI/ML | Embeddings & LLM | Vector embeddings |
+| **Pinecone** | AI/ML | Vector DB | Cloud service |
+| **Rank-BM25** | AI/ML | Keyword search | `gira-ai/gira-mcp-server/main.py` |
+| **spaCy** | NLP | Text processing | AI agent services |
+| **Presidio** | Security | PII detection | `gira-ai/gira-agent/pii_service.py` |
+| **Celery** | Queue | Task processing | `gira-backend/` |
+| **Airflow** | Orchestration | Workflow management | `gira-ai/gira-agent/airflow/` |
+| **Docker** | DevOps | Containerization | All services |
+| **Redis** | Cache | In-memory store | Docker container |
+| **MinIO** | Storage | Object storage | Docker container |
+
+---
+
+
+

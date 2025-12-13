@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import Sidebar from "./components/Sidebar"
 import ChatArea from "./components/ChatArea"
 import MessageInput from "./components/MessageInput"
+import StreamControls from "./components/StreamControls"
 import PdfViewerClient from "./components/PdfViewer"
 import authService from "@/lib/auth"
 import PlusMenu from "./components/PlusMenu"
@@ -53,6 +54,8 @@ export default function ChatPage() {
   const [pageTitle, setPageTitle] = useState<string>("")
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const streamReaderRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
   const [pdfViewer, setPdfViewer] = useState<PdfViewerState>({
     isOpen: false,
     pdfUrl: "",
@@ -79,6 +82,24 @@ export default function ChatPage() {
   })
 
   const plusButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Stream control handlers
+  const handlePauseStream = () => {
+    setIsPaused(true)
+  }
+
+  const handleResumeStream = () => {
+    setIsPaused(false)
+  }
+
+  const handleStopStream = () => {
+    if (streamReaderRef.current) {
+      streamReaderRef.current.cancel()
+      streamReaderRef.current = null
+    }
+    setIsLoading(false)
+    setIsPaused(false)
+  }
 
   const extractJSONFromMarkdown = (text: string): any | null => {
     let jsonText = text
@@ -440,6 +461,26 @@ export default function ChatPage() {
     try {
       setIsLoading(true)
 
+      // Find the assistant message to update
+      const messageToUpdate = messages.find(
+        (msg) => msg.conversation_id === conversationId && msg.sender === "assistant"
+      )
+
+      if (!messageToUpdate) {
+        console.error("Could not find message to regenerate")
+        return
+      }
+
+      const assistantMessageId = messageToUpdate.id
+
+      // Clear the existing content
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId ? { ...msg, content: "", references: [] } : msg
+        )
+      )
+
+      const token = authService.getToken()
       const regenerateData = {
         page_id: pageId,
         conversation_id: conversationId,
@@ -447,64 +488,100 @@ export default function ChatPage() {
         llm: selectedLlm,
       }
 
-      const response = await authService.regenerateResponse(regenerateData)
-      let assistantContent = ""
-      let references: Reference[] = []
-      let flaggingValue = ""
-      const newConversationId = response.conversation_id || conversationId
-
-      if (response.answer && response.references) {
-        assistantContent = response.answer
-        references = response.references.map((ref: any) => ({
-          page_number: ref.page_number,
-          text: ref.original_text || ref.text || "",
-          source: ref.source,
-          answer_segment: ref.answer_segment,
-          original_text: ref.original_text,
-          chunk_index: ref.chunk_index,
-          reference_number: ref.reference_number,
-        }))
-        flaggingValue = response.flagging_value || ""
-      } else if (response.response && typeof response.response === "string") {
-        const parsedJSON = extractJSONFromMarkdown(response.response)
-        if (parsedJSON && parsedJSON.answer && parsedJSON.references) {
-          assistantContent = parsedJSON.answer
-          references = parsedJSON.references.map((ref: any) => ({
-            page_number: ref.page_number,
-            text: ref.original_text || ref.text || "",
-            source: ref.source,
-            answer_segment: ref.answer_segment,
-            original_text: ref.original_text,
-            chunk_index: ref.chunk_index,
-            reference_number: ref.reference_number,
-          }))
-          flaggingValue = parsedJSON.flagging_value || ""
-        } else {
-          assistantContent = response.response
-          flaggingValue = response.flagging_value || ""
-        }
-      } else {
-        assistantContent = response.response || response.message || "I couldn't regenerate the response properly."
-        flaggingValue = response.flagging_value || ""
-      }
-
-      setMessages((prevMessages) => {
-        const updatedMessages = prevMessages.map((message) => {
-          if (message.conversation_id === conversationId && message.sender === "assistant") {
-            return {
-              ...message,
-              content: assistantContent,
-              references: references.length > 0 ? references : undefined,
-              flagging_value: flaggingValue,
-              conversation_id: newConversationId,
-              timestamp: new Date(),
-            }
-          }
-          return message
-        })
-        return updatedMessages
+      const response = await fetch("/api/regenerate-response", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(regenerateData),
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      if (!response.body) {
+        throw new Error("Response body is null")
+      }
+
+      // Handle streaming response
+      const reader = response.body.getReader()
+      streamReaderRef.current = reader
+      const decoder = new TextDecoder()
+      let buffer = ""
+      let streamedContent = ""
+      let newConversationId = conversationId
+      let finalReferences: Reference[] = []
+      let flaggingValue = ""
+
+      while (true) {
+        if (isPaused) {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+          continue
+        }
+
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith("data: ")) continue
+
+          try {
+            const jsonStr = line.slice(6)
+            const data = JSON.parse(jsonStr)
+
+            if (data.type === "metadata") {
+              newConversationId = data.conversation_id || conversationId
+            } else if (data.type === "chunk") {
+              streamedContent += data.content
+
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId ? { ...msg, content: streamedContent } : msg
+                )
+              )
+            } else if (data.type === "references" || data.type === "final") {
+              if (data.references && Array.isArray(data.references)) {
+                finalReferences = data.references.map((ref: any) => ({
+                  page_number: ref.page_number,
+                  text: ref.original_text || ref.text || "",
+                  source: ref.source,
+                  answer_segment: ref.answer_segment,
+                  original_text: ref.original_text,
+                  answer_snippet: ref.answer_snippet,
+                  chunk_index: ref.chunk_index,
+                  reference_number: ref.reference_number,
+                }))
+                flaggingValue = data.flagging_value || ""
+
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          references: finalReferences,
+                          conversation_id: newConversationId,
+                          flagging_value: flaggingValue,
+                        }
+                      : msg
+                  )
+                )
+              }
+            } else if (data.type === "error") {
+              throw new Error(data.message || "Stream error occurred")
+            }
+          } catch (parseError) {
+            console.error("Error parsing SSE line:", parseError, line)
+          }
+        }
+      }
+
+      streamReaderRef.current = null
     } catch (error) {
       console.error("Error regenerating response:", error)
       const errorMessage: Message = {
@@ -516,6 +593,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      setIsPaused(false)
     }
   }
 
@@ -1071,6 +1149,13 @@ export default function ChatPage() {
                 )}
               </div>
             </div>
+            <StreamControls
+              isLoading={isLoading}
+              isPaused={isPaused}
+              onPause={handlePauseStream}
+              onResume={handleResumeStream}
+              onStop={handleStopStream}
+            />
             <ChatArea
               messages={messages}
               isLoading={isLoading}

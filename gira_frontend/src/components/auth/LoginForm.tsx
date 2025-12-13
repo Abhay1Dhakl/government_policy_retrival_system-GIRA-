@@ -14,15 +14,15 @@ interface LoginFormProps {
   error?: string;
 }
 
-export default function LoginForm({ 
-  email, 
-  password, 
-  onEmailChange, 
-  onPasswordChange, 
+export default function LoginForm({
+  email,
+  password,
+  onEmailChange,
+  onPasswordChange,
   onLogin,
   onGoogleSignIn,
   isLoading,
-  error 
+  error
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -32,7 +32,7 @@ export default function LoginForm({
   useEffect(() => {
     const initializeGoogleSignIn = () => {
       const { google } = window as any;
-      
+
       if (!google || !googleButtonRef.current) {
         // Retry after a short delay if not loaded yet
         setTimeout(initializeGoogleSignIn, 100);
@@ -53,8 +53,8 @@ export default function LoginForm({
 
         google.accounts.id.renderButton(
           googleButtonRef.current,
-          { 
-            theme: "outline", 
+          {
+            theme: "outline",
             size: "large",
             width: googleButtonRef.current.offsetWidth,
             text: "signin_with",
@@ -83,7 +83,7 @@ export default function LoginForm({
         <div className="flex justify-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800">Sign In</h1>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Error Message */}
           {error && (
@@ -118,7 +118,7 @@ export default function LoginForm({
                 disabled={isLoading}
               />
             </div>
-            
+
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -138,7 +138,7 @@ export default function LoginForm({
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -152,7 +152,7 @@ export default function LoginForm({
                 Remember me
               </label>
             </div>
-            
+
             <button
               type="submit"
               disabled={isLoading || !email || !password}
@@ -168,7 +168,7 @@ export default function LoginForm({
               )}
             </button>
           </form>
-          
+
           <div className="text-center mt-6">
             <a href="#" className="text-sm text-gray-600 hover:text-blue-600">
               Forgot password?
