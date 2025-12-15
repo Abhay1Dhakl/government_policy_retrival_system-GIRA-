@@ -563,11 +563,11 @@ export default function ChatPage() {
                   prev.map((msg) =>
                     msg.id === assistantMessageId
                       ? {
-                          ...msg,
-                          references: finalReferences,
-                          conversation_id: newConversationId,
-                          flagging_value: flaggingValue,
-                        }
+                        ...msg,
+                        references: finalReferences,
+                        conversation_id: newConversationId,
+                        flagging_value: flaggingValue,
+                      }
                       : msg
                   )
                 )

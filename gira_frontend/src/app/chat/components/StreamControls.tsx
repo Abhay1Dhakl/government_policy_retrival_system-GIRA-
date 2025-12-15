@@ -29,7 +29,7 @@ export default function StreamControls({
           </span>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2">
         {!isPaused ? (
           <button
@@ -50,7 +50,7 @@ export default function StreamControls({
             <span>Resume</span>
           </button>
         )}
-        
+
         <button
           onClick={onStop}
           className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"

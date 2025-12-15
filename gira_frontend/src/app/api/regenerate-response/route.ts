@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization")
 
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Authorization header is required" }), { 
+      return new Response(JSON.stringify({ error: "Authorization header is required" }), {
         status: 401,
         headers: { "Content-Type": "application/json" }
       })
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           error: errorData.message || errorData.detail || "Regenerate request failed",
           status: response.status,
         }),
-        { 
+        {
           status: response.status,
           headers: { "Content-Type": "application/json" }
         }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Regenerate API error:", error)
-    return new Response(JSON.stringify({ error: "Internal server error" }), { 
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     })

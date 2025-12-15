@@ -38,10 +38,10 @@ const formatDistanceToNow = (date: Date): string => {
   return `${Math.floor(diffInSeconds / 2592000)}mo ago`
 }
 
-export default function Sidebar({ 
-  chatHistory, 
-  onConversationClick, 
-  onNewChatClick, 
+export default function Sidebar({
+  chatHistory,
+  onConversationClick,
+  onNewChatClick,
   backendPageTitles = {},
   selectedPageId,
 }: SidebarProps) {
@@ -72,7 +72,7 @@ export default function Sidebar({
     if (backendTitle) {
       return backendTitle
     }
-    
+
     const title = session.page_title || session.first_message
     return title
   }
@@ -80,10 +80,10 @@ export default function Sidebar({
   // Filter conversations based on search query
   const filteredChatHistory = searchQuery
     ? chatHistory.filter((session) => {
-        const title = getSessionTitle(session).toLowerCase()
-        const query = searchQuery.toLowerCase()
-        return title.includes(query) || session.first_message?.toLowerCase().includes(query)
-      })
+      const title = getSessionTitle(session).toLowerCase()
+      const query = searchQuery.toLowerCase()
+      return title.includes(query) || session.first_message?.toLowerCase().includes(query)
+    })
     : chatHistory
 
   const toggleSearch = () => {
@@ -108,17 +108,16 @@ export default function Sidebar({
                 toggleSearch()
               }
             }}
-            className={`w-full flex items-center gap-3 p-3 text-sm rounded-lg transition-colors duration-200 ${
-              isSearching && item.label === "Search Conversation"
+            className={`w-full flex items-center gap-3 p-3 text-sm rounded-lg transition-colors duration-200 ${isSearching && item.label === "Search Conversation"
                 ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
+              }`}
           >
             <item.icon className={`w-5 h-5 ${item.color}`} />
             <span className="font-medium">{item.label}</span>
           </button>
         ))}
-        
+
         {/* Search Input */}
         {isSearching && (
           <div className="relative">
@@ -157,16 +156,15 @@ export default function Sidebar({
           ) : (
             filteredChatHistory.map((session) => (
               <button
-                  key={session.page_id}
-                  onClick={() => handleConversationClick(session.page_id)}
-                  // highlight selected conversation
-                  className={`w-full text-left p-3 text-sm rounded-lg transition-colors duration-200 flex items-start gap-3 ${
-                    selectedPageId === session.page_id
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                key={session.page_id}
+                onClick={() => handleConversationClick(session.page_id)}
+                // highlight selected conversation
+                className={`w-full text-left p-3 text-sm rounded-lg transition-colors duration-200 flex items-start gap-3 ${selectedPageId === session.page_id
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
-                  aria-current={selectedPageId === session.page_id ? 'true' : undefined}
-                >
+                aria-current={selectedPageId === session.page_id ? 'true' : undefined}
+              >
                 <MessageSquare className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p

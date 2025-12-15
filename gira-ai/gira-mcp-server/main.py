@@ -48,11 +48,21 @@ except ImportError as e:
 except Exception as e:
     print(f"⚠ BM25 encoder initialization failed: {e} - semantic search only", file=sys.stderr)
 
-# Initialize Pinecone
-pc = Pinecone(
-    api_key=os.getenv("PINECONE_API_KEY", "pcsk_2RGA3Z_LVfVmxNQ7A7DX7w5BuhEW4MTCGmGuSghX7GmMwizqWqVCumyrWCcMdtE1jDxgav"),
-    environment="aped-4627-b74a"
-)
+# Initialize Pinecone with error handling
+try:
+    pc = Pinecone(
+        api_key=os.getenv("PINECONE_API_KEY", "pcsk_2RGA3Z_LVfVmxNQ7A7DX7w5BuhEW4MTCGmGuSghX7GmMwizqWqVCumyrWCcMdtE1jDxgav"),
+        environment="aped-4627-b74a"
+    )
+    
+    document_index_host = pc.describe_index(name=os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")).host
+    document_index = pc.Index(host=document_index_host, grpc_config=GRPCClientConfig(secure=False))
+    print("✅ Pinecone connection successful", file=sys.stderr)
+except Exception as e:
+    print(f"⚠️  Pinecone initialization failed: {e}", file=sys.stderr)
+    print("⚠️  MCP server will start but search functionality will be unavailable", file=sys.stderr)
+    pc = None
+    document_index = None
 
 mcp = FastMCP(
     name="mcp_server",
@@ -60,9 +70,6 @@ mcp = FastMCP(
     port=8001,
     debug=False
 )
-
-document_index_host = pc.describe_index(name=os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")).host
-document_index = pc.Index(host=document_index_host, grpc_config=GRPCClientConfig(secure=False))
 
 # Global thread pool for CPU-intensive tasks
 _thread_pool = ThreadPoolExecutor(max_workers=4)
@@ -320,6 +327,10 @@ async def get_embedding_async(query: str, task_type: str = "retrieval_query") ->
 
 async def execute_pinecone_query_async(query_vector: list, filter_dict: dict, top_k: int = 10):
     """Execute Pinecone query in thread pool to avoid blocking"""
+    if document_index is None:
+        print("⚠️  Pinecone not initialized, returning empty results", file=sys.stderr)
+        return {"matches": []}
+    
     loop = asyncio.get_event_loop()
     
     def query_pinecone():
