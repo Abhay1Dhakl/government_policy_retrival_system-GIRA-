@@ -30,9 +30,11 @@ class UserTokenSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         user = User.objects.filter(email=attrs["email"]).first()
+        if not user:
+            raise serializers.ValidationError("Invalid email or password")
         if not user.password:
             raise serializers.ValidationError("User has not set a password")
-        if not user or not user.check_password(attrs["password"]):
+        if not user.check_password(attrs["password"]):
             raise serializers.ValidationError("Invalid email or password")
         return attrs
 
