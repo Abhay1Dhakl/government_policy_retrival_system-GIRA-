@@ -114,7 +114,7 @@ async def build_dynamic_corpus():
         
         all_documents = []
         
-        for query in medical_queries:
+        for query in policy_queries:
             query_vector = await get_embedding_async(query)
             
             for doc_type in ["act", "regulation", "directive"]:

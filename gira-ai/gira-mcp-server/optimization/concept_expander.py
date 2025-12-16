@@ -13,12 +13,12 @@ def get_ontology() -> OntologyStore:
 def expand_query(query: str) -> Dict[str, List[str]]:
     onto = get_ontology()
     tokens = query.lower().replace('/', ' ').split()
-    drug_terms, ae_terms = onto.expand_terms(tokens)
+    policy_terms, provision_terms = onto.expand_terms(tokens)
     return {
         "original": query,
-        "drug_terms": drug_terms,
-        "ae_terms": ae_terms,
-        "all_expansion": list(set(drug_terms + ae_terms))
+        "policy_terms": policy_terms,
+        "provision_terms": provision_terms,
+        "all_expansion": list(set(policy_terms + provision_terms))
     }
 
 def build_expanded_queries(query: str, max_extra: int = 6) -> List[str]:

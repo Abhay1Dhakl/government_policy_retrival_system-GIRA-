@@ -225,8 +225,8 @@ class QueryIntentClassifier:
                 'boost_intent': QueryIntent.SAFETY_CONCERNS,
                 'boost_amount': 2.0
             },
-            'renal_safety': {
-                'condition': lambda f: f['has_renal_terms'] and f['has_safety_terms'],
+            'procedure_review': {
+                'condition': lambda f: f['has_procedure_terms'] and f['has_safety_terms'],
                 'boost_intent': QueryIntent.SAFETY_CONCERNS,
                 'boost_amount': 2.0
             }
@@ -242,7 +242,7 @@ class QueryIntentClassifier:
                 score += 3.0
             if features['safety_term_count'] > 1:
                 score += 1.0
-            if features['has_cardiac_terms'] or features['has_hepatic_terms'] or features['has_renal_terms']:
+            if features['has_jurisdiction_terms'] or features['has_enforcement_terms'] or features['has_procedure_terms']:
                 score += 1.5
 
         # Dosing inquiry intent
@@ -278,7 +278,7 @@ class QueryIntentClassifier:
         elif intent == QueryIntent.MONITORING_GUIDANCE:
             if features['has_monitoring_terms']:
                 score += 2.5
-            if features['has_cardiac_terms'] or features['has_hepatic_terms'] or features['has_renal_terms']:
+            if features['has_jurisdiction_terms'] or features['has_enforcement_terms'] or features['has_procedure_terms']:
                 score += 1.0
 
         return score
@@ -303,26 +303,26 @@ class QueryIntentClassifier:
                 reasons.append("contains safety-related keywords")
             if features['safety_term_count'] > 1:
                 reasons.append("multiple safety terms detected")
-            if features['has_cardiac_terms']:
-                reasons.append("cardiac safety concerns")
+            if features['has_jurisdiction_terms']:
+                reasons.append("jurisdiction/compliance concerns")
 
         elif intent == QueryIntent.DOSING_INQUIRY:
             if features['has_dosage_terms']:
-                reasons.append("contains dosage-related terms")
+                reasons.append("contains regulatory-related terms")
             if features['has_age_terms']:
-                reasons.append("age-specific dosing query")
+                reasons.append("stakeholder-specific query")
 
         elif intent == QueryIntent.PEDIATRIC_CONCERNS:
             if features['has_age_terms']:
-                reasons.append("pediatric/age-related terms")
+                reasons.append("specific authority/mandate terms")
             if features['age_term_count'] > 0:
-                reasons.append("multiple age references")
+                reasons.append("multiple regulatory references")
 
         elif intent == QueryIntent.MONITORING_GUIDANCE:
             if features['has_monitoring_terms']:
-                reasons.append("monitoring/testing terms")
-            if features['has_cardiac_terms']:
-                reasons.append("cardiac monitoring context")
+                reasons.append("compliance/enforcement terms")
+            if features['has_jurisdiction_terms']:
+                reasons.append("jurisdiction context")
 
         if not reasons:
             reasons.append("pattern matching and feature analysis")
