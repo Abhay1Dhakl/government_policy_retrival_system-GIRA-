@@ -1,4 +1,8 @@
-"""Quality scoring and ranking module."""
+"""GIRS Quality Scoring and Ranking Module
+
+Implements domain-specific quality scoring for government policy documents,
+including section-based weighting and relevance re-ranking.
+"""
 
 import re
 from typing import Dict, Any, List, Tuple
@@ -78,35 +82,36 @@ def compute_quality_bonus(metadata: Dict[str, Any], text: str, query_tokens: Lis
         if is_pediatric_meta:
             bonus += 0.35
             factors.append("is_pediatric_meta")
-        if re.search(r"^\s*8(?:\.\d+)*\b", section_title) and ("pediatric" in section_title or "paediatric" in section_title):
+        if re.search(r"^\s*8(?:\.\d+)*\b", section_title) and ("amendment" in section_title or "provision" in section_title):
             bonus += 0.3
-            factors.append("section_8.x_pediatric")
-        if any(term in text for term in ["pediatric", "paediatric", "children", "child", "infant", "neonate", "adolescent"]):
+            factors.append("section_8.x_amendment")
+        if any(term in text for term in ["amendment", "provision", "statute", "regulation", "legislative"]):
             bonus += 0.2
-            factors.append("text_pediatric_terms")
-        if re.search(r"\b\d+\s*mg\s*/\s*kg\b", text):
+            factors.append("text_legislative_terms")
+        if re.search(r"\b\d+\s*(?:section|article|clause)\b", text):
             bonus += 0.15
-            factors.append("dose_mg_per_kg")
-        if any(term in section_title for term in ["lactation", "pregnancy", "nonclinical", "geriatric"]):
+        if any(term in section_title.lower() for term in ["penalty", "penalty_clause", "enforcement", "penalties", "violation", "compliance_requirement"]):
+            factors.append("legal_penalty_term")
+        if any(term in section_title for term in ["exemption", "exclusion", "exception", "not_applicable"]):
             bonus -= 0.2
-            factors.append("section_not_pediatric")
+            factors.append("section_exclusion")
 
-    # Pregnancy-aware scoring
-    pregnancy_focus = any(token in {"pregnant", "pregnancy", "fetal", "fetus", "teratogenic", "birth", "defect"} for token in query_tokens)
+    # Compliance-focused scoring
+    compliance_focus = any(token in {"compliance", "compliance_requirement", "authority", "jurisdiction", "regulatory", "enforcement"} for token in query_tokens)
     
-    if pregnancy_focus:
-        if any(term in section_title for term in ["pregnancy", "fetal", "teratogenic", "reproduction", "developmental"]):
+    if compliance_focus:
+        if any(term in section_title for term in ["compliance", "authority", "jurisdiction", "enforcement"]):
             bonus += 0.35
-            factors.append("pregnancy_section")
-        if any(term in text for term in ["pregnancy", "pregnant", "fetal", "fetus", "teratogenic", "birth defect", "congenital"]):
+            factors.append("compliance_section")
+        if any(term in text for term in ["compliance", "authority", "jurisdiction", "regulatory", "enforcement"]):
             bonus += 0.25
-            factors.append("pregnancy_content")
-        if any(term in text for term in ["rat", "mouse", "rabbit", "animal", "embryo", "fetus", "developmental"]):
+            factors.append("compliance_content")
+        if any(term in text for term in ["government", "state", "federal", "regional", "national", "agency"]):
             bonus += 0.15
-            factors.append("pregnancy_studies")
-        if any(term in section_title for term in ["pediatric", "geriatric", "nonclinical"]):
+            factors.append("compliance_government_context")
+        if any(term in section_title for term in ["exemption", "exclusion", "exception"]):
             bonus -= 0.15
-            factors.append("section_not_pregnancy")
+            factors.append("section_not_compliance")
 
     # Clamp bonus value
     bonus = max(-0.4, min(bonus, 0.85))

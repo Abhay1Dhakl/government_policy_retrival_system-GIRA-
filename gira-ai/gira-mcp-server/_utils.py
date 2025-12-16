@@ -1,4 +1,8 @@
-"""Global instances and utilities module."""
+"""GIRS Global Instances and Utilities
+
+Global instances for Pinecone vector database, BM25 encoder, and thread pool
+used throughout the Government Information Retrieval System.
+"""
 
 import os
 import sys
@@ -39,6 +43,6 @@ except Exception as e:
 _thread_pool = ThreadPoolExecutor(max_workers=4)
 
 # Global corpus variables
-_medical_corpus = []
+_policy_corpus = []
 _corpus_last_updated = None
 _corpus_update_interval = int(os.getenv("CORPUS_UPDATE_INTERVAL", "3600"))

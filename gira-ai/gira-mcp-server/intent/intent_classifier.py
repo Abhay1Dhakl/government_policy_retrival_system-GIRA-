@@ -96,9 +96,9 @@ class QueryIntentClassifier:
             'has_safety_terms': bool(re.search(r'\b(side effects|adverse|toxicity|contraindication|warning|interaction|allergic|hypersensitivity|overdose|poisoning|risk|danger|caution)\b', query)),
             'has_age_terms': bool(re.search(r'\b(pediatric|children|infant|neonate|adolescent|geriatric|elderly|senior|pregnant|lactating|pregnancy|breastfeeding)\b', query)),
             'has_condition_terms': bool(re.search(r'\b(pneumonia|infection|hypertension|diabetes|asthma|copd|arthritis|depression|anxiety|epilepsy|migraine|osteoporosis|heart failure|stroke|kidney disease|liver disease)\b', query)),
-            'has_cardiac_terms': bool(re.search(r'\b(qt|qtc|torsades|arrhythmia|cardiac|heart|rhythm|tachycardia|bradycardia|fibrillation|palpitation|electrocardiogram|ecg|ekg)\b', query)),
-            'has_hepatic_terms': bool(re.search(r'\b(liver|hepatic|hepatotoxicity|jaundice|bilirubin|alt|ast|transaminitis|cirrhosis|hepatitis)\b', query)),
-            'has_renal_terms': bool(re.search(r'\b(kidney|renal|nephrotoxicity|creatinine|bun|gfr|dialysis|acute kidney injury|chronic kidney disease)\b', query)),
+            'has_jurisdiction_terms': bool(re.search(r'\b(jurisdiction|federal|state|local|national|government|authority|administrative|regulatory)\b', query)),
+            'has_enforcement_terms': bool(re.search(r'\b(enforcement|compliance|penalty|sanction|fine|prohibition|mandate|requirement|obligation|authority)\b', query)),
+            'has_procedure_terms': bool(re.search(r'\b(procedure|appeal|dispute|resolution|mechanism|process|hearing|review|court|tribunal)\b', query)),
             'has_monitoring_terms': bool(re.search(r'\b(monitor|monitoring|check|test|lab|blood|urine|ecg|ekg|follow|surveillance)\b', query)),
             'has_regulatory_terms': bool(re.search(r'\b(fda|ema|regulatory|compliance|approved|indication|labeling|pi|lrd|hpl)\b', query)),
             'has_pharmacokinetic_terms': bool(re.search(r'\b(absorption|distribution|metabolism|excretion|half.life|clearance|bioavailability|pharmacokinetics|pk)\b', query))
@@ -215,13 +215,13 @@ class QueryIntentClassifier:
                 'boost_intent': QueryIntent.PEDIATRIC_CONCERNS,
                 'boost_amount': 2.0
             },
-            'cardiac_safety': {
-                'condition': lambda f: f['has_cardiac_terms'] and f['has_safety_terms'],
+            'jurisdiction_safety': {
+                'condition': lambda f: f['has_jurisdiction_terms'] and f['has_safety_terms'],
                 'boost_intent': QueryIntent.SAFETY_CONCERNS,
                 'boost_amount': 2.0
             },
-            'hepatic_safety': {
-                'condition': lambda f: f['has_hepatic_terms'] and f['has_safety_terms'],
+            'enforcement_compliance': {
+                'condition': lambda f: f['has_enforcement_terms'] and f['has_safety_terms'],
                 'boost_intent': QueryIntent.SAFETY_CONCERNS,
                 'boost_amount': 2.0
             },

@@ -1,6 +1,8 @@
 """
-Google Gemini API Embeddings Module
-Uses Gemini's text-embedding-004 model for high-quality embeddings
+Government Information Retrieval System (GIRS) - Gemini API Embeddings
+
+Uses Google Gemini's text-embedding-004 model for generating 384-dimensional
+vector embeddings of government policy documents.
 """
 
 import os

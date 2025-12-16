@@ -1,4 +1,8 @@
-"""Pinecone response parsing and document formatting."""
+"""GIRS Search Response Parsing and Document Formatting
+
+Handles Pinecone response parsing and standardization of government document
+metadata for consistent presentation to clients.
+"""
 
 from typing import Dict, Any, List
 

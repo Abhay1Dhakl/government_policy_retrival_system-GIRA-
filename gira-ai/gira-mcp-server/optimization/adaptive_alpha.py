@@ -10,9 +10,9 @@ from enum import Enum
 
 
 class QueryType(Enum):
-    """Types of medical queries for alpha adjustment"""
-    SPECIFIC_MEDICAL_TERM = "specific_medical_term"
-    GENERAL_MEDICAL_CONCEPT = "general_medical_concept"
+    """Types of government policy queries for alpha adjustment"""
+    SPECIFIC_POLICY_TERM = "specific_policy_term"
+    GENERAL_POLICY_CONCEPT = "general_policy_concept"
     SAFETY_CONCERNS = "safety_concerns"
     DOSING_QUESTIONS = "dosing_questions"
     GENERAL_INQUIRY = "general_inquiry"
@@ -35,24 +35,24 @@ class AdaptiveAlphaController:
     def __init__(self):
         # Base alpha values for different query types
         self.base_alphas = {
-            QueryType.SPECIFIC_MEDICAL_TERM: 0.8,    # Favor dense embeddings for specific terms
-            QueryType.GENERAL_MEDICAL_CONCEPT: 0.6,  # Balanced for general concepts
+            QueryType.SPECIFIC_POLICY_TERM: 0.8,    # Favor dense embeddings for specific policy terms
+            QueryType.GENERAL_POLICY_CONCEPT: 0.6,  # Balanced for general policy concepts
             QueryType.SAFETY_CONCERNS: 0.7,          # Favor dense for safety questions
             QueryType.DOSING_QUESTIONS: 0.5,          # Balanced for dosing
             QueryType.GENERAL_INQUIRY: 0.4,           # Favor sparse for general questions
             QueryType.COMPLEX_MULTI_TERM: 0.6         # Balanced for complex queries
         }
 
-        # Medical term patterns for classification
-        self.medical_patterns = {
-            'specific_drugs': re.compile(r'\b(?:azithromycin|amoxicillin|ciprofloxacin|metronidazole|fluconazole|acyclovir|valacyclovir|oseltamivir|ibuprofen|acetaminophen|aspirin|warfarin|atorvastatin|simvastatin|metformin|lisinopril|amlodipine|prednisone|albuterol|fluticasone|omeprazole|ondansetron|morphine|oxycodone|hydrocodone)\b', re.IGNORECASE),
-            'medical_conditions': re.compile(r'\b(?:pneumonia|infection|hypertension|diabetes|asthma|copd|arthritis|depression|anxiety|epilepsy|migraine|osteoporosis|heart failure|stroke|kidney disease|liver disease)\b', re.IGNORECASE),
-            'safety_terms': re.compile(r'\b(?:side effects|adverse|toxicity|contraindication|warning|interaction|allergic|hypersensitivity|overdose|poisoning)\b', re.IGNORECASE),
-            'dosing_terms': re.compile(r'\b(?:dosage|dose|mg|mcg|g|ml|tablet|capsule|frequency|daily|twice|three times|q\d*h|administration|route)\b', re.IGNORECASE),
-            'adverse_events': re.compile(r'\b(?:nausea|vomiting|diarrhea|rash|dizziness|headache|fatigue|insomnia|constipation|abdominal pain|fever|chills|cough|shortness of breath|chest pain|palpitations|swelling|bruising|bleeding|jaundice|confusion|seizures)\b', re.IGNORECASE),
-            'cardiac_terms': re.compile(r'\b(?:qt|qtc|torsades|arrhythmia|cardiac|heart|rhythm|tachycardia|bradycardia|fibrillation|palpitation|electrocardiogram|ecg|ekg)\b', re.IGNORECASE),
-            'hepatic_terms': re.compile(r'\b(?:liver|hepatic|hepatotoxicity|jaundice|bilirubin|alt|ast|transaminitis|cirrhosis|hepatitis)\b', re.IGNORECASE),
-            'renal_terms': re.compile(r'\b(?:kidney|renal|nephrotoxicity|creatinine|bun|gfr|dialysis|acute kidney injury|chronic kidney disease)\b', re.IGNORECASE)
+        # Government policy term patterns for classification
+        self.policy_patterns = {
+            'specific_acts': re.compile(r'\b(?:Constitution|Criminal Code|Civil Code|Labor Code|Environmental Act|Tax Act|Health Act|Education Act|Housing Act|Competition Act)\b', re.IGNORECASE),
+            'policy_subjects': re.compile(r'\b(?:regulation|amendment|statute|directive|ordinance|bylaw|provision|clause|article|section)\b', re.IGNORECASE),
+            'enforcement_terms': re.compile(r'\b(?:enforcement|compliance|penalty|sanction|fine|prohibition|mandate|requirement|obligation|authority)\b', re.IGNORECASE),
+            'jurisdiction_terms': re.compile(r'\b(?:jurisdiction|federal|state|local|national|government|ministry|agency|department|commission)\b', re.IGNORECASE),
+            'legal_procedures': re.compile(r'\b(?:appeal|dispute|resolution|hearing|procedure|process|mechanism|review|court|tribunal)\b', re.IGNORECASE),
+            'rights_duties': re.compile(r'\b(?:right|duty|responsibility|obligation|liability|immunity|exemption|exception|waiver|entitlement)\b', re.IGNORECASE),
+            'compliance_terms': re.compile(r'\b(?:comply|compliance|compliant|non-compliant|requirement|mandate|obligation|shall|must|may not|prohibited)\b', re.IGNORECASE),
+            'administrative_terms': re.compile(r'\b(?:administrative|government|state|federal|ministry|department|agency|authority|office|bureau)\b', re.IGNORECASE)
         }
 
         # Track alpha performance for learning
@@ -103,7 +103,7 @@ class AdaptiveAlphaController:
                 'adjustments': adjustments,
                 'query_type': query_type.value,
                 'query_length': len(query.split()),
-                'medical_term_count': self._count_medical_terms(query_lower)
+                'policy_term_count': self._count_policy_terms(query_lower)
             }
         )
 
@@ -112,39 +112,39 @@ class AdaptiveAlphaController:
         words = query.split()
         word_count = len(words)
 
-        # Check for specific medical terms
-        specific_drug_matches = len(self.medical_patterns['specific_drugs'].findall(query))
-        if specific_drug_matches > 0:
-            return QueryType.SPECIFIC_MEDICAL_TERM
+        # Check for specific policy terms
+        specific_act_matches = len(self.policy_patterns['specific_acts'].findall(query))
+        if specific_act_matches > 0:
+            return QueryType.SPECIFIC_POLICY_TERM
 
-        # Check for safety concerns
-        safety_matches = len(self.medical_patterns['safety_terms'].findall(query))
-        adverse_matches = len(self.medical_patterns['adverse_events'].findall(query))
+        # Check for enforcement/compliance focus
+        safety_matches = len(self.policy_patterns['enforcement_terms'].findall(query))
+        adverse_matches = len(self.policy_patterns['compliance_terms'].findall(query))
         if safety_matches > 0 or adverse_matches > 0:
             return QueryType.SAFETY_CONCERNS
 
-        # Check for dosing questions
-        dosing_matches = len(self.medical_patterns['dosing_terms'].findall(query))
+        # Check for procedure/jurisdiction focus
+        dosing_matches = len(self.policy_patterns['legal_procedures'].findall(query))
         if dosing_matches > 0:
             return QueryType.DOSING_QUESTIONS
 
-        # Check for general medical concepts
-        condition_matches = len(self.medical_patterns['medical_conditions'].findall(query))
-        if condition_matches > 0:
-            return QueryType.GENERAL_MEDICAL_CONCEPT
+        # Check for general policy concepts
+        subject_matches = len(self.policy_patterns['policy_subjects'].findall(query))
+        if subject_matches > 0:
+            return QueryType.GENERAL_POLICY_CONCEPT
 
         # Check for complex multi-term queries
-        medical_term_count = self._count_medical_terms(query)
-        if word_count >= 4 and medical_term_count >= 2:
+        policy_term_count = self._count_policy_terms(query)
+        if word_count >= 4 and policy_term_count >= 2:
             return QueryType.COMPLEX_MULTI_TERM
 
         # Default to general inquiry
         return QueryType.GENERAL_INQUIRY
 
-    def _count_medical_terms(self, query: str) -> int:
-        """Count total medical terms in query"""
+    def _count_policy_terms(self, query: str) -> int:
+        """Count total policy terms in query"""
         total_count = 0
-        for pattern_name, pattern in self.medical_patterns.items():
+        for pattern_name, pattern in self.policy_patterns.items():
             matches = pattern.findall(query)
             total_count += len(matches)
         return total_count
@@ -168,32 +168,32 @@ class AdaptiveAlphaController:
                 'reason': 'Long query favors keyword matching'
             })
 
-        # Medical specificity adjustment
-        medical_term_count = self._count_medical_terms(query)
-        if medical_term_count >= 3:
+        # Policy specificity adjustment
+        policy_term_count = self._count_policy_terms(query)
+        if policy_term_count >= 3:
             adjustments.append({
-                'type': 'medical_specificity',
-                'adjustment': 0.15,  # Favor dense for highly medical queries
-                'reason': 'High medical term density favors semantic embeddings'
+                'type': 'policy_specificity',
+                'adjustment': 0.15,  # Favor dense for highly specific policy queries
+                'reason': 'High policy term density favors semantic embeddings'
             })
 
-        # Cardiac focus adjustment (dense embeddings better for cardiac terms)
-        cardiac_matches = len(self.medical_patterns['cardiac_terms'].findall(query))
-        if cardiac_matches > 0:
+        # Jurisdiction/enforcement focus adjustment (dense embeddings better for regulatory terms)
+        jurisdiction_matches = len(self.policy_patterns['jurisdiction_terms'].findall(query))
+        if jurisdiction_matches > 0:
             adjustments.append({
-                'type': 'cardiac_focus',
+                'type': 'jurisdiction_focus',
                 'adjustment': 0.1,
-                'reason': 'Cardiac queries benefit from semantic understanding'
+                'reason': 'Jurisdiction queries benefit from semantic understanding'
             })
 
-        # Safety-critical adjustment
+        # Compliance-critical adjustment
         if query_type == QueryType.SAFETY_CONCERNS:
-            safety_terms = len(self.medical_patterns['safety_terms'].findall(query))
-            if safety_terms >= 2:
+            compliance_terms = len(self.policy_patterns['compliance_terms'].findall(query))
+            if compliance_terms >= 2:
                 adjustments.append({
-                    'type': 'safety_critical',
+                    'type': 'compliance_critical',
                     'adjustment': 0.05,
-                    'reason': 'Safety queries need precise semantic matching'
+                    'reason': 'Compliance queries need precise semantic matching'
                 })
 
         # Question format adjustment

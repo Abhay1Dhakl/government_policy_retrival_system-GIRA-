@@ -1,42 +1,46 @@
-"""Global constants for MCP server."""
+"""GIRS Core Constants
+
+Centralized constants for Government Information Retrieval System including
+stopwords, document type synonyms, section priorities, and region aliases.
+"""
 
 STOPWORDS = {
     "the", "and", "for", "with", "from", "that", "this", "have", "will", "shall",
     "under", "when", "into", "upon", "such", "which", "been", "were", "your", "their",
     "than", "about", "each", "within", "while", "those", "these", "there", "after",
-    "before", "during", "because", "other", "where", "patients", "patient", "should",
-    "could", "would", "might", "effect", "effects", "used", "using", "use", "dose",
-    "doses", "per", "day", "days", "week", "weeks", "month", "months", "or", "of",
+    "before", "during", "because", "other", "where", "citizens", "citizen", "should",
+    "could", "would", "might", "effect", "effects", "used", "using", "use", "term",
+    "terms", "per", "day", "days", "week", "weeks", "month", "months", "or", "of",
     "via", "into", "onto"
 }
 
 DOCUMENT_TYPE_SYNONYMS = {
-    "pis": {
-        "pis", "pi", "prescribing_information", "prescribing-information",
-        "prescribing information", "product_information", "product-information",
-        "product information"
+    "act": {
+        "act", "acts", "legislation", "law", "statute",
+        "legislative_act", "government_act",
+        "government act"
     },
-    "lrd": {
-        "lrd", "label_repository_data", "label repository data",
-        "label_repository_document", "label repository document", "label-data"
+    "regulation": {
+        "regulation", "regulations", "regulatory", "rule",
+        "rules", "regulatory_document", "regulatory document", "policy"
     },
-    "hpl": {
-        "hpl", "health_product_label", "health product label", "product label",
-        "product_label"
+    "directive": {
+        "directive", "directives", "government_directive", "official_directive", "official directive",
+        "policy_directive"
     },
-    "past_cases": {"past_cases", "past-cases", "history", "user_history"}
+    "amendment": {"amendment", "amendments", "legislative_amendment", "policy_amendment"}
 }
 
 SECTION_PRIORITY_WEIGHTS = {
-    "warning": 0.25,
-    "contraindication": 0.25,
-    "safety": 0.22,
-    "adverse": 0.2,
-    "reaction": 0.18,
-    "overdose": 0.18,
-    "dosage": 0.15,
-    "pediatric": 0.15,
-    "geriatric": 0.12
+    "penalties": 0.25,
+    "enforcement": 0.25,
+    "compliance": 0.22,
+    "requirements": 0.2,
+    "provisions": 0.18,
+    "amendments": 0.18,
+    "authority": 0.15,
+    "scope": 0.15,
+    "definitions": 0.12
 }
 
 REGION_ALIASES = {

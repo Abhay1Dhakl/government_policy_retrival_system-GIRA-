@@ -1,4 +1,8 @@
-"""Search engine module - core hybrid search execution."""
+"""Government Information Retrieval System (GIRS) - Hybrid Search Engine
+
+Core hybrid search execution combining dense embeddings and BM25 sparse search
+for government policy document retrieval.
+"""
 
 import asyncio
 import time
@@ -19,7 +23,7 @@ from ..optimization.adaptive_alpha import get_alpha_recommendation
 from ..embeddings.gemini_embeddings import get_embedding_async
 
 # Import global instances
-from .._utils import document_index, rank_bm25, _medical_corpus, _corpus_last_updated, _corpus_update_interval
+from .._utils import document_index, rank_bm25, _policy_corpus, _corpus_last_updated, _corpus_update_interval
 
 
 def expand_document_type(document_type: Optional[str]):
@@ -126,8 +130,8 @@ async def execute_hybrid_search(query: str, document_type: str, country: str = N
 
         bm25_start = time.time()
         bm25_scores: Dict[str, float] = {}
-        if _medical_corpus:
-            bm25_scores = await get_bm25_scores(query, _medical_corpus)
+        if _policy_corpus:
+            bm25_scores = await get_bm25_scores(query, _policy_corpus)
         bm25_time = time.time() - bm25_start
 
         canonical_doc_type, doc_type_variants = expand_document_type(document_type)

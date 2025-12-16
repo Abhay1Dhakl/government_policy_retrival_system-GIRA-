@@ -1,4 +1,8 @@
-"""GIRA MCP Server - Main Entry Point with Refactored Module Architecture."""
+"""Government Information Retrieval System (GIRS) - MCP Server
+
+A production-ready hybrid search system combining dense embeddings (Gemini API)
+and BM25 sparse search for comprehensive government document retrieval.
+"""
 
 import os
 import sys
@@ -18,7 +22,7 @@ from search.engine import execute_hybrid_search, execute_pinecone_query, execute
 from search.parsing import _process_search_matches, parse_pinecone_response
 from embeddings.manager import get_embedding_async, build_dynamic_corpus, update_bm25_with_dynamic_corpus
 from embeddings.gemini_embeddings import initialize_gemini
-from _utils import document_index, rank_bm25, _medical_corpus
+from _utils import document_index, rank_bm25, _policy_corpus
 
 # Initialize MCP server
 mcp = FastMCP(
@@ -118,7 +122,7 @@ async def system_status() -> Dict[str, Any]:
     return {
         "gemini_available": gemini_available,
         "bm25_available": rank_bm25 is not None,
-        "corpus_size": len(_medical_corpus),
+        "corpus_size": len(_policy_corpus),
         "features": {
             "hybrid_search": gemini_available and rank_bm25 is not None,
             "semantic_search": gemini_available,
@@ -128,9 +132,9 @@ async def system_status() -> Dict[str, Any]:
     }
 
 
-@mcp.tool(name="rebuild_corpus", description="Manually rebuild the dynamic medical corpus")
+@mcp.tool(name="rebuild_corpus", description="Manually rebuild the dynamic government policy corpus")
 async def rebuild_corpus() -> Dict[str, Any]:
-    """Manually rebuild the dynamic medical corpus"""
+    """Manually rebuild the dynamic government policy corpus"""
     try:
         corpus = await build_dynamic_corpus()
         return {
@@ -155,7 +159,7 @@ async def document2(query: str, country: str = None) -> Dict[str, Any]:
     return await _execute_document_search("PI", query, "pis", country)
 
 
-@mcp.tool(name="hpl", description="Get HPL (Health Product Label) with hybrid search")
+@mcp.tool(name="act", description="Get ACT (Government Act) with hybrid search")
 async def document3(query: str, country: str = None) -> Dict[str, Any]:
     """Retrieve HPL documents using hybrid search with country filtering."""
     return await _execute_document_search("HPL", query, "hpl", country)
@@ -171,7 +175,7 @@ async def past_cases(query: str, user_id: str = None) -> Dict[str, Any]:
 async def inspect_database(top_k: int = 50) -> Dict[str, Any]:
     """Comprehensive tool to inspect all documents in the database."""
     try:
-        query_vector = await get_embedding_async("medical information")
+        query_vector = await get_embedding_async("government policy information")
         
         from search.engine import execute_pinecone_query_async
         response = await execute_pinecone_query_async(
@@ -234,7 +238,7 @@ async def inspect_database(top_k: int = 50) -> Dict[str, Any]:
 async def debug_document_type(document_type: str = "pis", top_k: int = 20) -> Dict[str, Any]:
     """Debug tool to inspect the metadata of a given document type."""
     try:
-        query_vector = await get_embedding_async("drug information")
+        query_vector = await get_embedding_async("legislation information")
         
         from search.engine import execute_pinecone_query_async
         response = await execute_pinecone_query_async(
@@ -295,7 +299,7 @@ async def startup():
 
     if gemini_available:
         print(" Warming up Gemini API...", file=sys.stderr)
-        test_embedding = await get_embedding_async("medical terminology test query")
+        test_embedding = await get_embedding_async("government terminology test query")
         if test_embedding:
             print(f" ✅ Gemini API ready (embedding dimension: {len(test_embedding)})", file=sys.stderr)
         else:
@@ -303,14 +307,14 @@ async def startup():
 
     try:
         await build_dynamic_corpus()
-        print(f" Dynamic corpus: {len(_medical_corpus)} terms loaded", file=sys.stderr)
+        print(f" Dynamic corpus: {len(_policy_corpus)} terms loaded", file=sys.stderr)
     except Exception as e:
         print(f" Dynamic corpus initialization failed: {e}", file=sys.stderr)
 
     if rank_bm25:
         try:
             await update_bm25_with_dynamic_corpus()
-            print(" BM25 encoder: Initialized with medical corpus", file=sys.stderr)
+            print(" BM25 encoder: Initialized with government policy corpus", file=sys.stderr)
         except Exception as e:
             print(f" BM25 initialization failed: {e}", file=sys.stderr)
 
