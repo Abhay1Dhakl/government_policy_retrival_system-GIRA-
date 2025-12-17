@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Local imports - Core
 from config import settings
-from logging_config import setup_logging, get_logger
+from config.logging import setup_logging, get_logger
 
 # Local imports - Middleware
 from middleware.cors import get_cors_config
@@ -28,7 +28,7 @@ from middleware.logging import RequestLoggingMiddleware
 
 
 # Local imports - Other
-from pdf_highlighter import MedicalPDFHighlighter
+from pdf_highlighter.highlighter import PolicyHighlighter
 from document_upload.app.api.v1.routes_ingestion import router as ingestion_router
 
 # Local imports - API Routes
@@ -51,7 +51,7 @@ def get_pdf_highlighter():
     global _pdf_highlighter
     if _pdf_highlighter is None:
         print("Initializing PDF highlighter...")
-        _pdf_highlighter = MedicalPDFHighlighter(
+        _pdf_highlighter = PolicyHighlighter(
             minio_endpoint=settings.MINIO_ENDPOINT,
             minio_access_key=settings.MINIO_ACCESS_KEY,
             minio_secret_key=settings.MINIO_SECRET_KEY,

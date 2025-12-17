@@ -13,7 +13,7 @@ from api.v1.models.requests import StreamingQueryRequest, RegenerationRequest, Q
 from middleware.auth import decode_user_id_from_header
 from database.services import DatabaseService
 from database.config import create_tables
-from logging_config import get_logger
+from config.logging import get_logger
 import os
 import re
 from services.streaming_service import stream_ai_response

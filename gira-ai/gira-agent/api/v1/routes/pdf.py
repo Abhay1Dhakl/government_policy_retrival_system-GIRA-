@@ -8,15 +8,15 @@ import os
 import tempfile
 from api.v1.models.requests import HighlightTextRequest, CancelCleanupRequest
 from middleware.auth import decode_user_id_from_header
-from logging_config import get_logger
-from config import settings
-from pdf_highlighter import MedicalPDFHighlighter
+from config.logging import get_logger
+from config.settings import settings
+from pdf_highlighter.highlighter import PolicyHighlighter
 import re
 logger = get_logger(__name__)
 router = APIRouter(prefix="/pdf", tags=["PDF"])
 
 # Initialize PDF Highlighter
-pdf_highlighter = MedicalPDFHighlighter(
+pdf_highlighter = PolicyHighlighter(
     minio_endpoint=settings.MINIO_ENDPOINT,
     minio_access_key=settings.MINIO_ACCESS_KEY,
     minio_secret_key=settings.MINIO_SECRET_KEY,

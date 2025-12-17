@@ -12,6 +12,7 @@ import google.generativeai as genai
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 _gemini_initialized = False
 
+
 def initialize_gemini():
     """Initialize Gemini API with the provided key"""
     global _gemini_initialized
@@ -31,6 +32,7 @@ def initialize_gemini():
     except Exception as e:
         print(f"❌ Failed to initialize Gemini API: {e}", file=sys.stderr)
         return False
+
 
 def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
     """
@@ -78,6 +80,7 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
         print(f"⚠️ Gemini embedding failed: {e}", file=sys.stderr)
         return None
 
+
 async def get_gemini_embedding_async(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
     """
     Async wrapper for Gemini embeddings
@@ -86,6 +89,7 @@ async def get_gemini_embedding_async(text: str, task_type: str = "retrieval_docu
     import asyncio
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, get_gemini_embedding, text, task_type)
+
 
 def test_gemini_embeddings():
     """Test function to verify Gemini embeddings work"""
@@ -104,6 +108,7 @@ def test_gemini_embeddings():
     except Exception as e:
         print(f"❌ Gemini test failed: {e}")
         return False
+
 
 if __name__ == "__main__":
     # Test when run directly

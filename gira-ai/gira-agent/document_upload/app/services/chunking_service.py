@@ -10,7 +10,7 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 from enum import Enum
-from logging_config import get_logger
+from config.logging import get_logger
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))

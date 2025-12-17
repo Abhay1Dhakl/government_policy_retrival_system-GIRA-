@@ -6,11 +6,12 @@ import sys
 import os
 from dotenv import load_dotenv
 
-# Add the current directory to Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add the parent directory to Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import create_tables, drop_tables, engine
 from sqlalchemy import text
+
 
 def create_database():
     """Create the database if it doesn't exist"""
@@ -56,6 +57,7 @@ def create_database():
     
     return True
 
+
 def setup_tables():
     """Create all tables"""
     try:
@@ -66,6 +68,7 @@ def setup_tables():
     except Exception as e:
         print(f"Error creating tables: {e}")
         return False
+
 
 def reset_database():
     """Drop and recreate all tables"""
@@ -87,6 +90,7 @@ def reset_database():
         print("Database reset cancelled")
         return False
 
+
 def main():
     load_dotenv()
     
@@ -106,9 +110,10 @@ def main():
     else:
         print("GIRA Database Setup")
         print("Commands:")
-        print("  python setup_db.py create  - Create database and tables")
-        print("  python setup_db.py setup   - Create tables only")
-        print("  python setup_db.py reset   - Reset all data (WARNING: destructive)")
+        print("  python -m database.setup create  - Create database and tables")
+        print("  python -m database.setup setup   - Create tables only")
+        print("  python -m database.setup reset   - Reset all data (WARNING: destructive)")
+
 
 if __name__ == "__main__":
     main()

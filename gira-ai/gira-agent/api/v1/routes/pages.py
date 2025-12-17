@@ -8,7 +8,7 @@ import re
 from api.v1.models.requests import RegisterPageRequest
 from middleware.auth import decode_user_id_from_header
 from database.services import DatabaseService
-from logging_config import get_logger
+from config.logging import get_logger
 from typing import Optional
 logger = get_logger(__name__)
 router = APIRouter(prefix="/pages", tags=["Pages"])

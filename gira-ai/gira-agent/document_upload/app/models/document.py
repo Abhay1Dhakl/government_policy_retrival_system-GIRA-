@@ -3,7 +3,7 @@ from datetime import datetime
 from pinecone import Pinecone, ServerlessSpec
 import dotenv
 import os
-from gemini_embeddings import get_gemini_embedding
+from services.embeddings.gemini import get_gemini_embedding
 
 dotenv.load_dotenv()
 

@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Tuple
 from document_upload.app.models.document import store_document
-from logging_config import get_logger
+from config.logging import get_logger
 from .chunking_service import healthcare_storage
 
 logger = get_logger(__name__)

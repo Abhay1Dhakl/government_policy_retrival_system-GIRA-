@@ -5,7 +5,7 @@ Logs all HTTP requests with timing information
 import time
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from logging_config import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 

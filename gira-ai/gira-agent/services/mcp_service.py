@@ -248,12 +248,12 @@ async def query_mcp(user_query: str, llm: str, tools: List[str], country: str, u
                         print(f"[MCP] Chunk from {chunk.get('source', 'Unknown')}: document_type='{document_type}', tool_name='{tool_name}'")
                         
                         # Categorize by document_type metadata
-                        if document_type in ['pis', 'pi', 'prescribing_information', 'prescribing information']:
+                        if document_type in ['pis', 'pi', 'prescribing_information', 'prescribing information', 'policy', 'act', 'bill', 'main_policy']:
                             chunks_by_tool['pi_chunks'].append(chunk)
-                            print(f"[MCP] → Classified as PI chunk")
-                        elif document_type in ['lrd', 'labeling', 'regulatory', 'label']:
+                            print(f"[MCP] → Classified as Policy Document (PI) chunk")
+                        elif document_type in ['lrd', 'labeling', 'regulatory', 'label', 'regulation', 'amendment', 'gazette', 'guideline']:
                             chunks_by_tool['lrd_chunks'].append(chunk)
-                            print(f"[MCP] → Classified as LRD chunk")
+                            print(f"[MCP] → Classified as Regulatory Guideline (LRD) chunk")
                         else:
                             chunks_by_tool['other_chunks'].append(chunk)
                             print(f"[MCP] → Classified as Other chunk")
