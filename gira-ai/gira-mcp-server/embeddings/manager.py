@@ -12,7 +12,7 @@ import re
 
 # Import from gemini embeddings module (local file in embeddings folder)
 try:
-    from .gemini_embeddings import get_gemini_embedding_async, initialize_gemini, get_gemini_embedding
+    from embeddings.gemini_embeddings import get_gemini_embedding_async, initialize_gemini, get_gemini_embedding
     gemini_available = initialize_gemini()
     if gemini_available:
         print("✅ Gemini API initialized successfully", file=sys.stderr)
@@ -22,7 +22,7 @@ except ImportError as e:
     gemini_available = False
     print(f"⚠️ Gemini embeddings module not available: {e}", file=sys.stderr)
 
-from .._utils import rank_bm25, _policy_corpus, _corpus_last_updated, _corpus_update_interval
+from _utils import rank_bm25, _policy_corpus, _corpus_last_updated, _corpus_update_interval
 
 
 @lru_cache(maxsize=500)
@@ -99,7 +99,7 @@ async def build_dynamic_corpus():
     global _policy_corpus, _corpus_last_updated
     
     try:
-        from .engine import execute_pinecone_query_async
+        from search.engine import execute_pinecone_query_async
         
         policy_queries = [
             "statutory provisions", "regulatory requirements", "enforcement authority", "compliance obligations", 

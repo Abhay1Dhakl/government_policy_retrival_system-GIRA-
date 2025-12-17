@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any, List, Tuple
 from collections import Counter
 
-from ..core.constants import STOPWORDS, SECTION_PRIORITY_WEIGHTS
+from core.constants import STOPWORDS, SECTION_PRIORITY_WEIGHTS
 
 
 def tokenize_text(text: str) -> List[str]:

@@ -1,5 +1,5 @@
 from typing import Dict, Any, List
-from ontology_loader import OntologyStore
+from ontology.ontology_loader import OntologyStore
 
 _ontology: OntologyStore | None = None
 

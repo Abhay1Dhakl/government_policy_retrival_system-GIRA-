@@ -22,13 +22,23 @@ sys.path.append(GIRA_AGENT_PATH)
 os.environ.setdefault('DATABASE_URL', 'postgresql://postgres:postgres@postgres/gira_db')
 os.environ.setdefault('OPENAI_API_KEY', os.getenv('OPENAI_API_KEY', ''))
 
-from DPO_Algorithm.auto_train import (
-    count_new_feedback,
-    run_export,
-    fine_tune,
-    register_new_model,
-    mark_feedback_used
-)
+# Try to import DPO training functions, but gracefully handle if module doesn't exist
+try:
+    from DPO_Algorithm.auto_train import (
+        count_new_feedback,
+        run_export,
+        fine_tune,
+        register_new_model,
+        mark_feedback_used
+    )
+except ImportError:
+    # DPO_Algorithm module not available - placeholder functions
+    print("⚠️  DPO_Algorithm module not found. DPO training DAG will not be functional.")
+    def count_new_feedback(): return 0
+    def run_export(*args, **kwargs): pass
+    def fine_tune(*args, **kwargs): pass
+    def register_new_model(*args, **kwargs): pass
+    def mark_feedback_used(*args, **kwargs): pass
 
 # DAG configuration
 default_args = {

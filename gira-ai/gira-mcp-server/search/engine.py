@@ -10,20 +10,20 @@ import copy
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from ..core.constants import (
+from core.constants import (
     STOPWORDS,
     DOCUMENT_TYPE_SYNONYMS,
     SECTION_PRIORITY_WEIGHTS,
     REGION_ALIASES,
 )
-from .scoring import apply_quality_scoring, compute_quality_bonus, tokenize_text, extract_prf_terms
-from .parsing import parse_pinecone_response
-from ..optimization.concept_expander import build_expanded_queries
-from ..optimization.adaptive_alpha import get_alpha_recommendation
-from ..embeddings.gemini_embeddings import get_embedding_async
+from search.scoring import apply_quality_scoring, compute_quality_bonus, tokenize_text, extract_prf_terms
+from search.parsing import parse_pinecone_response
+from optimization.concept_expander import build_expanded_queries
+from optimization.adaptive_alpha import get_alpha_recommendation
+from embeddings.manager import get_embedding_async
 
 # Import global instances
-from .._utils import document_index, rank_bm25, _policy_corpus, _corpus_last_updated, _corpus_update_interval
+from _utils import document_index, rank_bm25, _policy_corpus, _corpus_last_updated, _corpus_update_interval
 
 
 def expand_document_type(document_type: Optional[str]):
