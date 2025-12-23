@@ -123,6 +123,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:3535",
     "http://localhost:3001",
     "https://gira.govinfo.com",
 ]

@@ -32,7 +32,7 @@ export const authService = {
    */
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/login`, {
+      const response = await fetch(`${API_BASE_URL}/token/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,6 +141,17 @@ export const authService = {
   },
 
   /**
+   * Get Authorization header
+   */
+  getAuthHeader: (): { Authorization: string } | {} => {
+    const token = authService.getToken();
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+    return {};
+  },
+
+  /**
    * Logout user and clear tokens
    */
   logout: () => {
@@ -188,12 +199,12 @@ export const authService = {
    */
   googleSignIn: async (credential: string): Promise<LoginResponse> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/google-signin`, {
+      const response = await fetch(`${API_BASE_URL}/token/oauth/callback/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ credential }),
+        body: JSON.stringify({ token: credential }),
       });
 
       if (!response.ok) {
