@@ -112,9 +112,9 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
                     if not fallback_detect and inner:
                         past_texts.append(inner[:200])
                 if past_texts:
-                    return "Past cases found:\n\n" + "\n\n".join(past_texts)
+                    return "Past cases found:\n\n" + "\n\n".join(past_texts), []
                 else:
-                    return "No additional documents or past cases available for this question."
+                    return "No additional documents or past cases available for this question.", []
             except Exception as e:
                 print(f"[process_structured_response] past_cases parsing error: {e}", file=sys.stderr)
                 # Fall through to generic handling
@@ -143,7 +143,7 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
             print(f"[process_structured_response] {tool_name}: has_content={has_content}", file=sys.stderr)
 
             if total_found == 0 or not matches or not has_content:
-                return f"No {tool_name.upper()} documents found for this query."
+                return f"No {tool_name.upper()} documents found for this query.", []
 
         # Check if this is our new simplified format
         if "matches" in data and "total_found" in data:
@@ -255,7 +255,7 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
             print(f"[process_structured_response] {tool_name}: returning content length={len(result)}, chunks={len(chunk_metadata_list)}", file=sys.stderr)
             return result, chunk_metadata_list        # Handle legacy format or error responses
         elif "error" in data:
-            return f"Error from {tool_name}: {data.get('error', 'Unknown error')}"
+            return f"Error from {tool_name}: {data.get('error', 'Unknown error')}", []
 
         else:
             # Try to extract any text content from legacy format
@@ -280,10 +280,10 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
                                     content_parts.append(str(text)[:250])  # Limit text length for faster processing
 
                     if content_parts:
-                        return f"{tool_name.upper()} documents found:\n\n" + "\n\n".join(content_parts)
+                        return f"{tool_name.upper()} documents found:\n\n" + "\n\n".join(content_parts), []
 
-            return f"No relevant {tool_name.upper()} content found in response."
+            return f"No relevant {tool_name.upper()} content found in response.", []
 
     except Exception as e:
-        print(f"[process_structured_response] Error: {e}")
-        return f"Error processing {tool_name} structured response: {str(e)}"
+        print(f"[process_structured_response] Error: {e}", file=sys.stderr)
+        return f"Error processing {tool_name} structured response: {str(e)}", []

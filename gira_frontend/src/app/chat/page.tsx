@@ -64,7 +64,12 @@ export default function ChatPage() {
     targetPageNumber: 1,
   })
   const [chatHistory, setChatHistory] = useState<Conversation[]>([])
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [selectedTools, setSelectedTools] = useState<string[]>(() => {
+    // Initialize with all enabled document type tools
+    return documentTypeOptions
+      .filter(option => option.enabled)
+      .map(option => option.toolName)
+  })
   const [selectedLlm, setSelectedLlm] = useState<string>(() => {
     const defaultLlm = llmOptions.find((option) => option.selected)
     return defaultLlm?.apiName || "openai"

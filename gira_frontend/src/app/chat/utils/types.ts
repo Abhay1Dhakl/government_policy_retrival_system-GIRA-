@@ -14,34 +14,34 @@ export interface LLMOption {
 
 export const documentTypeOptions: DocumentTypeOption[] = [
   {
-    id: 'grds',
-    label: 'GRDs',
+    id: 'general',
+    label: 'All Documents',
     enabled: true,
-    toolName: 'grd'
+    toolName: 'general_search'
   },
   {
-    id: 'lrds',
-    label: 'LRDs',
+    id: 'constitution',
+    label: 'Constitution',
     enabled: true,
-    toolName: 'lrd'
+    toolName: 'constitution'
   },
   {
-    id: 'escalations',
-    label: 'Escalations, PIs, Leaflets',
+    id: 'acts',
+    label: 'Acts & Legislation',
     enabled: true,
-    toolName: 'pis'
+    toolName: 'acts'
+  },
+  {
+    id: 'regulations',
+    label: 'Regulations & Bylaws',
+    enabled: true,
+    toolName: 'regulations'
   },
   {
     id: 'past-cases',
     label: 'Past Cases',
     enabled: true,
     toolName: 'past_cases'
-  },
-  {
-    id: 'online-databases',
-    label: 'Online Databases-Embase,Pubmed',
-    enabled: true,
-    toolName: 'online_db'
   },
 ];
 

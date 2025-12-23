@@ -155,22 +155,24 @@ async def rebuild_corpus() -> Dict[str, Any]:
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
-@mcp.tool(name="lrd", description="Get LRD (Label Repository Data) with hybrid search")
+@mcp.tool(name="constitution", description="Search Constitution and primary legislation documents")
 async def document1(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve LRD documents using hybrid search with country filtering."""
-    return await _execute_document_search("LRD", query, "lrd", country)
+    """Retrieve constitutional and primary legislation documents using hybrid search."""
+    # Currently documents are indexed as 'pis' - needs migration to 'act'
+    return await _execute_document_search("Constitution", query, "pis", country)
 
 
-@mcp.tool(name="pis", description="Get PI (Prescribing Information) with hybrid search") 
+@mcp.tool(name="acts", description="Search government acts and legislation") 
 async def document2(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve PI documents using hybrid search with country filtering."""
-    return await _execute_document_search("PI", query, "pis", country)
+    """Retrieve government acts and legislative documents using hybrid search."""
+    return await _execute_document_search("Acts", query, "pis", country)
 
 
-@mcp.tool(name="act", description="Get ACT (Government Act) with hybrid search")
+@mcp.tool(name="regulations", description="Search regulations and bylaws")
 async def document3(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve HPL documents using hybrid search with country filtering."""
-    return await _execute_document_search("HPL", query, "hpl", country)
+    """Retrieve regulatory documents and bylaws using hybrid search."""
+    # Update to 'regulation' once documents are properly indexed
+    return await _execute_document_search("Regulations", query, "pis", country)
 
 
 @mcp.tool(name="past_cases", description="Get past cases with hybrid search")
@@ -298,7 +300,7 @@ async def debug_document_type(document_type: str = "pis", top_k: int = 20) -> Di
 
 async def startup():
     """Pre-warm expensive resources and initialize hybrid search system"""
-    print("MIRA MCP Server starting up...", file=sys.stderr)
+    print("GIRA MCP Server starting up...", file=sys.stderr)
 
     print("System Status:", file=sys.stderr)
     print(f" Gemini API: {'Available ✅' if gemini_available else 'Unavailable ❌'}", file=sys.stderr)
@@ -326,11 +328,11 @@ async def startup():
         except Exception as e:
             print(f" BM25 initialization failed: {e}", file=sys.stderr)
 
-    print("MIRA MCP Server startup complete - hybrid search ready!", file=sys.stderr)
+    print("GIRA MCP Server startup complete - hybrid search ready!", file=sys.stderr)
 
 
 if __name__ == "__main__":
-    print("Initializing advanced MIRA MCP server with hybrid search...", file=sys.stderr)
+    print("Initializing GIRA MCP server with hybrid search...", file=sys.stderr)
     
     try:
         try:
