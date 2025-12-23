@@ -5,8 +5,8 @@ venv/
 env/
 *.pyc
 __pycache__/
-.env
-.env.*
+# .env
+# .env.*
 
 # Ignore large model caches and transformers/sentence-transformers caches
 gira-ai/gira-agent/.cache/
@@ -42,7 +42,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
