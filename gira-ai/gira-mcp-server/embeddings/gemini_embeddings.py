@@ -1,24 +1,24 @@
 """
 Government Information Retrieval System (GIRS) - Gemini API Embeddings
 
-Uses Google Gemini's text-embedding-004 model for generating 384-dimensional
-vector embeddings of government policy documents.
+Uses Google Gemini's text-embedding-004 model for generating embeddings.
 """
 
 import os
 import sys
 from typing import List, Optional
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 # Initialize Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-_gemini_initialized = False
+_client = None
 
 def initialize_gemini():
     """Initialize Gemini API with the provided key"""
-    global _gemini_initialized
+    global _client
     
-    if _gemini_initialized:
+    if _client:
         return True
     
     if not GEMINI_API_KEY:
@@ -26,8 +26,7 @@ def initialize_gemini():
         return False
     
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        _gemini_initialized = True
+        _client = genai.Client(api_key=GEMINI_API_KEY)
         print("✅ Gemini API initialized successfully", file=sys.stderr)
         return True
     except Exception as e:
@@ -36,39 +35,40 @@ def initialize_gemini():
 
 def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
     """
-    Get embeddings from Gemini API
+    Get embeddings from Gemini API using google-genai package
     
     Args:
         text: Text to embed
-        task_type: One of:
-            - "retrieval_query" (for search queries)
-            - "retrieval_document" (for documents to be retrieved)
-            - "semantic_similarity" (for comparing similarity)
-            - "classification" (for text classification)
-            - "clustering" (for clustering tasks)
+        task_type: Task type for embedding
     
     Returns:
-        List of floats (768 dimensions) or None on error
+        List of floats (padded to 1024 dimensions) or None on error
     """
     if not initialize_gemini():
         return None
     
     try:
-        # Use text-embedding-004 model (768 dimensions)
-        result = genai.embed_content(
-            model="models/text-embedding-004",
-            content=text,
-            task_type=task_type,
-            title=None  # Optional title for retrieval_document tasks
+        result = _client.models.embed_content(
+            model="text-embedding-004",
+            contents=text,
+            config=types.EmbedContentConfig(
+                task_type=task_type,
+                title=None
+            ),
         )
         
-        embedding = result['embedding']
+        if not result.embeddings:
+            return None
+            
+        embedding = result.embeddings[0].values
         
         # Gemini returns 768 dimensions, we need 1024 for Pinecone
         # Pad with zeros to reach 1024 dimensions
         if len(embedding) < 1024:
             padding = [0.0] * (1024 - len(embedding))
             embedding.extend(padding)
+        elif len(embedding) > 1024:
+            embedding = embedding[:1024]
         
         return embedding
         
@@ -79,7 +79,7 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
 async def get_gemini_embedding_async(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
     """
     Async wrapper for Gemini embeddings
-    Note: Gemini SDK doesn't have native async, so we use the sync version
+    Note: Gemini SDK doesn't have native async, so we use the sync version in executor
     """
     import asyncio
     loop = asyncio.get_event_loop()
@@ -92,6 +92,7 @@ def test_gemini_embeddings():
         return False
     
     try:
+        # task_type must be valid enum or string supported by API
         embedding = get_gemini_embedding("test government policy query about education reform")
         if embedding and len(embedding) == 1024:
             print(f"✅ Gemini embeddings working! Dimension: {len(embedding)}")

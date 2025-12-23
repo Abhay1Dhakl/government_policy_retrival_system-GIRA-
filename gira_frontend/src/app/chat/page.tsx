@@ -635,7 +635,22 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, initialAssistantMessage])
 
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_CHAT_API_BASE_URL || 'http://localhost:8081/api/v1';
+      const chatApiBase = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
+
       const token = authService.getToken()
+      if (!token) {
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          content: "You must be logged in to send messages.",
+          sender: "assistant",
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, errorMessage])
+        setIsLoading(false)
+        return
+      }
+
       const payload: any = {
         user_query: content,
         tools: selectedTools,

@@ -41,7 +41,9 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://gira.govinfo.com",
+    "https://gira.govinfo.com",
     "https://gira-backend.govinfo.com",
+    "http://localhost:3000",
 ]
 
 

@@ -8,7 +8,8 @@ import os
 import sys
 import asyncio
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
 from datetime import datetime
 
 # Fix tokenizers parallelism warning
@@ -35,13 +36,15 @@ mcp = FastMCP(
 # Initialize Gemini
 gemini_available = initialize_gemini()
 print(f"Gemini API: {'✅ Available' if gemini_available else '❌ Unavailable'}", file=sys.stderr)
-
-
-async def execute_tool_with_timing(tool_name: str, query: str, document_type: str, country: str = None, user_id: str = None):
+async def execute_tool_with_timing(tool_name: str, query: str, document_type: Optional[str], country: str = None, user_id: str = None):
     """Execute tool with hybrid search and performance timing"""
     start_time = time.time()
     
     try:
+        # If document_type is "all" or "general", treat it as None to search everything
+        if document_type and document_type.lower() in ["all", "general"]:
+            document_type = None
+            
         result = await execute_hybrid_search(query, document_type=document_type, country=country, user_id=user_id, top_k=20)
         
         if result is None:
@@ -69,7 +72,7 @@ async def execute_tool_with_timing(tool_name: str, query: str, document_type: st
         }
 
 
-async def _execute_document_search(tool_name: str, query: str, document_type: str, country: str = None) -> Dict[str, Any]:
+async def _execute_document_search(tool_name: str, query: str, document_type: Optional[str], country: str = None) -> Dict[str, Any]:
     """Execute document search with standardized error handling and response formatting."""
     try:
         result = await execute_tool_with_timing(tool_name, query, document_type, country)
@@ -79,7 +82,7 @@ async def _execute_document_search(tool_name: str, query: str, document_type: st
             "total_found": 0,
             "query_processed": query[:100],
             "country_filter": country or "none",
-            "document_type": document_type,
+            "document_type": document_type or "all",
             "search_completed": True,
             "search_metadata": result.get("search_metadata", {}),
             "sources_found": []
@@ -107,7 +110,7 @@ async def _execute_document_search(tool_name: str, query: str, document_type: st
             "total_found": 0,
             "query_processed": query[:100],
             "country_filter": country or "none",
-            "document_type": document_type,
+            "document_type": document_type or "all",
             "search_completed": False,
             "error": str(e),
             "error_type": type(e).__name__
@@ -115,6 +118,12 @@ async def _execute_document_search(tool_name: str, query: str, document_type: st
 
 
 # MCP Tools
+
+@mcp.tool(name="general_search", description="Search all government documents (Acts, policies, regulations, etc.)")
+async def general_search(query: str, country: str = None) -> Dict[str, Any]:
+    """Retrieve documents across all types using hybrid search."""
+    return await _execute_document_search("General", query, None, country)
+
 
 @mcp.tool(name="system_status", description="Check system status and available features")
 async def system_status() -> Dict[str, Any]:
@@ -145,7 +154,6 @@ async def rebuild_corpus() -> Dict[str, Any]:
         }
     except Exception as e:
         return {"status": "error", "error": str(e)}
-
 
 @mcp.tool(name="lrd", description="Get LRD (Label Repository Data) with hybrid search")
 async def document1(query: str, country: str = None) -> Dict[str, Any]:

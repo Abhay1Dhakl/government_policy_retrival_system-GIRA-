@@ -18,7 +18,7 @@ export default function LoginPage() {
 
     try {
       const response = await authService.login({ email, password });
-      
+
       const { access_token, refresh_token, has_details } = response.data;
       console.log('Login response data:', response.data);
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
       if (has_details === true) {
         router.push('/chat');
       } else {
-        router.push('/users');
+        router.push('/chat');
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -55,7 +55,7 @@ export default function LoginPage() {
 
     try {
       const response = await authService.googleSignIn(credential);
-      
+
       const { access_token, refresh_token, has_details } = response.data;
 
       if (!access_token) {
@@ -68,7 +68,7 @@ export default function LoginPage() {
       if (has_details === true) {
         router.push('/chat');
       } else {
-        router.push('/users');
+        router.push('/chat');
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);

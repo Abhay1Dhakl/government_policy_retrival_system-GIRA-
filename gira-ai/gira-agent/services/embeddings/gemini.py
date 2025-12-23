@@ -1,36 +1,44 @@
 """
 Google Gemini API Embeddings Module
 Uses Gemini's text-embedding-004 model for high-quality embeddings
+Migrated to new google.genai package
 """
 
 import os
 import sys
 from typing import List, Optional
-import google.generativeai as genai
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    print("❌ Failed to import google.genai. Please install it with: pip install google-genai", file=sys.stderr)
+    genai = None
 
 # Initialize Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-_gemini_initialized = False
-
+_client = None
 
 def initialize_gemini():
-    """Initialize Gemini API with the provided key"""
-    global _gemini_initialized
+    """Initialize Gemini API client with the provided key"""
+    global _client
     
-    if _gemini_initialized:
+    if _client:
         return True
     
     if not GEMINI_API_KEY:
         print("⚠️ GEMINI_API_KEY not found in environment", file=sys.stderr)
         return False
     
+    if not genai:
+        print("❌ google.genai package not installed", file=sys.stderr)
+        return False
+
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        _gemini_initialized = True
-        print("✅ Gemini API initialized successfully", file=sys.stderr)
+        _client = genai.Client(api_key=GEMINI_API_KEY)
+        print("✅ Gemini API client initialized successfully", file=sys.stderr)
         return True
     except Exception as e:
-        print(f"❌ Failed to initialize Gemini API: {e}", file=sys.stderr)
+        print(f"❌ Failed to initialize Gemini API client: {e}", file=sys.stderr)
         return False
 
 
@@ -56,23 +64,33 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
         return None
     
     try:
-        # Use text-embedding-004 model (768 dimensions, multilingual)
-        # Supports: English, Arabic, French, Spanish, German, Chinese, Japanese, Korean, 
-        # Russian, Portuguese, Italian, Dutch, Turkish, Polish, and 100+ more languages
-        result = genai.embed_content(
-            model="models/text-embedding-004",
-            content=text,
-            task_type=task_type,
-            title=None  # Optional title for retrieval_document tasks
+        # Map task_type string to simplified string if needed, currently string is supported.
+        # "retrieval_document", "retrieval_query", etc.
+        
+        result = _client.models.embed_content(
+            model="text-embedding-004",
+            contents=text,
+            config=types.EmbedContentConfig(
+                task_type=task_type,
+                title=None  # Optional title
+            ),
         )
         
-        embedding = result['embedding']
+        # Extract embedding from response
+        # response structure: EmbedContentResponse(embeddings=[ContentEmbedding(values=[...])])
+        if not result.embeddings:
+            return None
+            
+        embedding = result.embeddings[0].values
         
         # Gemini returns 768 dimensions, we need 1024 for Pinecone
         # Pad with zeros to reach 1024 dimensions
         if len(embedding) < 1024:
             padding = [0.0] * (1024 - len(embedding))
             embedding.extend(padding)
+        elif len(embedding) > 1024:
+             # Truncate if larger (unlikely for this model but good safety)
+             embedding = embedding[:1024]
         
         return embedding
         
@@ -84,7 +102,7 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
 async def get_gemini_embedding_async(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
     """
     Async wrapper for Gemini embeddings
-    Note: Gemini SDK doesn't have native async, so we use the sync version
+    Note: Gemini SDK sync client is used here in executor
     """
     import asyncio
     loop = asyncio.get_event_loop()

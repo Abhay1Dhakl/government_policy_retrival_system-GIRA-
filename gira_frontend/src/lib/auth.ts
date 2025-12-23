@@ -68,11 +68,15 @@ export const authService = {
         let errorMessage = 'Registration failed';
         try {
           const error = await response.json();
-          errorMessage = error.message || errorMessage;
+          errorMessage = error.message || (error.data ? JSON.stringify(error.data) : errorMessage);
+          if (error.errors) {
+            errorMessage += ': ' + JSON.stringify(error.errors);
+          }
+          console.error('Registration error (JSON):', error);
         } catch (e) {
-          // Fallback if response is not JSON
           const text = await response.text();
-          errorMessage = text || errorMessage;
+          console.error('Registration error (Non-JSON):', text.substring(0, 500)); // Log first 500 chars
+          errorMessage = `Server Error (${response.status}): ${response.statusText}`;
         }
         throw new Error(errorMessage);
       }

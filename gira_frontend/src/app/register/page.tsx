@@ -53,8 +53,8 @@ export default function RegisterPage() {
 
       console.log('Registration successful:', response.message);
 
-      // Redirect to users page to complete profile
-      router.push('/users');
+      // Redirect to chat page directly
+      router.push('/chat');
     } catch (error: any) {
       console.error('Registration failed:', error);
 
@@ -95,7 +95,7 @@ export default function RegisterPage() {
       if (has_details === true) {
         router.push('/chat');
       } else {
-        router.push('/users');
+        router.push('/chat');
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);
