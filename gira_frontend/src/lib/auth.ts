@@ -56,7 +56,7 @@ export const authService = {
    */
   register: async (data: { email: string; password: string; name?: string }): Promise<AuthResponse> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/register`, {
+      const response = await fetch(`${API_BASE_URL}/users/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,8 +65,16 @@ export const authService = {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Registration failed');
+        let errorMessage = 'Registration failed';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch (e) {
+          // Fallback if response is not JSON
+          const text = await response.text();
+          errorMessage = text || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       return await response.json();

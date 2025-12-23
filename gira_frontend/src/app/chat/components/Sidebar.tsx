@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { PlusCircle, Search, MessageSquare, Moon, Sun, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import authService from "@/lib/auth"
+import { authService } from "@/lib/auth"
 import { useDarkMode } from "@/context/DarkModeContext"
 
 interface Session {
@@ -109,8 +109,8 @@ export default function Sidebar({
               }
             }}
             className={`w-full flex items-center gap-3 p-3 text-sm rounded-lg transition-colors duration-200 ${isSearching && item.label === "Search Conversation"
-                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
           >
             <item.icon className={`w-5 h-5 ${item.color}`} />
@@ -160,8 +160,8 @@ export default function Sidebar({
                 onClick={() => handleConversationClick(session.page_id)}
                 // highlight selected conversation
                 className={`w-full text-left p-3 text-sm rounded-lg transition-colors duration-200 flex items-start gap-3 ${selectedPageId === session.page_id
-                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 aria-current={selectedPageId === session.page_id ? 'true' : undefined}
               >

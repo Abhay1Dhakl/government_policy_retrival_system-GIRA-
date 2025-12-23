@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { Copy, Edit, ThumbsUp, ThumbsDown, RotateCcw, TriangleAlert, Check, X } from "lucide-react"
 import References from "./References"
 import FeedbackModal from "./FeedbackModal"
-import authService from "@/lib/auth"
+import { authService } from "@/lib/auth"
 
 interface Reference {
   page_number: number
@@ -114,11 +114,11 @@ export default function ChatArea({
   }
 
   const latestAssistantMessage = getLatestAssistantMessage()
-  
+
   // Check if we should show thinking for the latest assistant message
   const shouldShowThinking = () => {
     if (!latestAssistantMessage) return false
-    
+
     // Show thinking if:
     // 1. The message is empty AND we're loading
     // 2. OR the message is marked as streaming
@@ -275,7 +275,7 @@ export default function ChatArea({
               const isEditing = editingMessageId === message.id
               const isStreaming = message.isStreaming
               const isEmpty = !message.content || message.content.trim() === ""
-              
+
               // Show thinking for assistant messages that are empty and either streaming or loading
               const showThinking = message.sender === "assistant" && isEmpty && (isStreaming || (isLoading && message === latestAssistantMessage))
 
@@ -283,11 +283,10 @@ export default function ChatArea({
                 <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="max-w-3xl w-full dark:bg-gray-800">
                     <div
-                      className={`p-4 rounded-lg ${
-                        message.sender === "user"
+                      className={`p-4 rounded-lg ${message.sender === "user"
                           ? "bg-blue-600 text-white ml-auto max-w-fit"
                           : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
-                      }`}
+                        }`}
                     >
                       {message.sender === "assistant" && (
                         <div className="flex items-start gap-3">
@@ -331,7 +330,7 @@ export default function ChatArea({
                                     const nodes: (string | React.ReactNode)[] = []
                                     let lastIndex = 0
                                     let match: RegExpExecArray | null
-                                    
+
                                     // Group references by document (source)
                                     const refsByDoc: { [key: string]: Reference[] } = {}
                                     if (message.references) {
@@ -342,9 +341,9 @@ export default function ChatArea({
                                         refsByDoc[ref.source].push(ref)
                                       })
                                     }
-                                    
+
                                     // Get unique document sources in order
-                                    const docSources = message.references 
+                                    const docSources = message.references
                                       ? Array.from(new Set(message.references.map(r => r.source)))
                                       : []
 
@@ -359,10 +358,10 @@ export default function ChatArea({
                                       // Parse citation: [docNum.refNum]
                                       const docNum = parseInt(match[1], 10)
                                       const refNum = parseInt(match[2], 10)
-                                      
+
                                       // Get the document source (docNum is 1-indexed)
                                       const docSource = docSources[docNum - 1]
-                                      
+
                                       // Get the reference from that document (refNum is 1-indexed)
                                       if (docSource && refsByDoc[docSource] && refsByDoc[docSource][refNum - 1]) {
                                         const ref = refsByDoc[docSource][refNum - 1]
@@ -429,7 +428,7 @@ export default function ChatArea({
 
                                     return (
                                       <>
-                                        {nodes.map((n, i) => 
+                                        {nodes.map((n, i) =>
                                           typeof n === "string" ? <span key={`${key}-t-${i}`}>{n}</span> : n
                                         )}
                                         {isStreaming && isLastParagraph && renderStreamingCursor()}
@@ -452,11 +451,10 @@ export default function ChatArea({
                                                 message.conversation_id
                                               )
                                             }
-                                            className={`p-1 rounded-md transition-colors ${
-                                              feedback === "like"
+                                            className={`p-1 rounded-md transition-colors ${feedback === "like"
                                                 ? "text-blue-600 bg-blue-50"
                                                 : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-                                            }`}
+                                              }`}
                                             title="Like this paragraph"
                                           >
                                             <ThumbsUp className="h-3 w-3" />
@@ -471,11 +469,10 @@ export default function ChatArea({
                                                 message.conversation_id
                                               )
                                             }
-                                            className={`p-1 rounded-md transition-colors ${
-                                              feedback === "dislike"
+                                            className={`p-1 rounded-md transition-colors ${feedback === "dislike"
                                                 ? "text-red-600 bg-red-50"
                                                 : "text-gray-400 hover:text-red-600 hover:bg-red-50"
-                                            }`}
+                                              }`}
                                             title="Dislike this paragraph"
                                           >
                                             <ThumbsDown className="h-3 w-3" />
@@ -534,11 +531,10 @@ export default function ChatArea({
                                     <button
                                       onClick={handleEditSave}
                                       disabled={!editingContent.trim()}
-                                      className={`p-1.5 rounded-md transition-colors ${
-                                        editingContent.trim()
+                                      className={`p-1.5 rounded-md transition-colors ${editingContent.trim()
                                           ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
                                           : 'text-gray-300 cursor-not-allowed'
-                                      }`}
+                                        }`}
                                       title="Save edit"
                                     >
                                       <Check className="h-4 w-4" />
