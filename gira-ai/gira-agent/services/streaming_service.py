@@ -224,9 +224,16 @@ def filter_and_group_chunks(all_chunk_metadata, tools):
 
     for chunk in all_chunk_metadata:
         document_type = str(chunk.get('document_type', '')).lower()
-        if document_type in ['pis', 'pi', 'prescribing_information', 'prescribing information', 'policy', 'act', 'bill', 'main_policy']:
+        source = str(chunk.get('source', '')).lower()
+        
+        # Broaden categorization for government documents
+        # Policy/Primary bucket (PI equivalent)
+        if any(term in document_type for term in ['constitution', 'policy', 'act', 'bill', 'law', 'statute', 'pis', 'main']) or \
+           any(term in source for term in ['constitution', 'act', 'policy']):
             pi_chunks.append(dict(chunk))
-        elif document_type in ['lrd', 'labeling', 'regulatory', 'label', 'regulation', 'amendment', 'gazette', 'guideline']:
+        # Regulatory/Guideline bucket (LRD equivalent)
+        elif any(term in document_type for term in ['regulation', 'directive', 'amendment', 'gazette', 'guideline', 'rule', 'bylaw', 'lrd']) or \
+             any(term in source for term in ['regulation', 'directive', 'rule']):
             lrd_chunks.append(dict(chunk))
         else:
             other_chunks.append(dict(chunk))

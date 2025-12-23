@@ -67,8 +67,8 @@ if os.name == "nt":
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="GIRA AI Medical Query Agent",
-    description="AI-powered medical query assistant",
+    title="GIRA AI Government Policy Agent",
+    description="AI-powered government policy and document retrieval assistant",
     version="1.0.0"
 )
 

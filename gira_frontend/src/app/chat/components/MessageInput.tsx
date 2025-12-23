@@ -11,17 +11,17 @@ interface MessageInputProps {
   documentToggleStates?: Record<string, boolean>;
   setDocumentToggleStates?: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   onPlusMenuSelect?: (option: string, type?: 'document' | 'llm') => void;
-  isLoading?: boolean; 
+  isLoading?: boolean;
 }
 
-export default function MessageInput({ 
-  onSendMessage, 
-  selectedLlm, 
-  setSelectedLlm, 
-  documentToggleStates, 
-  setDocumentToggleStates, 
+export default function MessageInput({
+  onSendMessage,
+  selectedLlm,
+  setSelectedLlm,
+  documentToggleStates,
+  setDocumentToggleStates,
   onPlusMenuSelect,
-  isLoading = false 
+  isLoading = false
 }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [showPlusMenu, setShowPlusMenu] = useState(false);
@@ -40,7 +40,7 @@ export default function MessageInput({
   const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const isMonitoringRef = useRef<boolean>(false);
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !isLoading) {
@@ -73,12 +73,12 @@ export default function MessageInput({
   // Monitor silence and auto-stop
   const monitorSilence = () => {
     if (!analyserRef.current || !dataArrayRef.current) return;
-    
+
     isMonitoringRef.current = true;
 
     const checkSilence = () => {
       if (!isMonitoringRef.current || !analyserRef.current || !dataArrayRef.current) return;
-      
+
       analyserRef.current.getByteFrequencyData(dataArrayRef.current as Uint8Array<ArrayBuffer>);
       const avgVolume =
         (dataArrayRef.current as Uint8Array<ArrayBuffer>).reduce((a, b) => a + b, 0) /
@@ -104,7 +104,7 @@ export default function MessageInput({
   // Stop recording safely
   const stopRecording = () => {
     isMonitoringRef.current = false;
-    
+
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -114,7 +114,7 @@ export default function MessageInput({
     setIsRecording(false);
 
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current.close().catch(() => { });
       audioContextRef.current = null;
     }
     sourceRef.current = null;
@@ -211,11 +211,10 @@ export default function MessageInput({
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="relative">
             <div
-              className={`flex items-center gap-3 p-3 border rounded-full bg-white shadow-sm transition-all ${
-                isLoading
+              className={`flex items-center gap-3 p-3 border rounded-full bg-white shadow-sm transition-all ${isLoading
                   ? 'border-gray-200 opacity-60'
                   : 'border-gray-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500'
-              }`}
+                }`}
             >
               {/* Plus Button */}
               <div className="relative">
@@ -224,11 +223,10 @@ export default function MessageInput({
                   type="button"
                   onClick={() => !isLoading && setShowPlusMenu(!showPlusMenu)}
                   disabled={isLoading}
-                  className={`p-2 rounded-full transition-colors ${
-                    isLoading
+                  className={`p-2 rounded-full transition-colors ${isLoading
                       ? 'text-gray-300 cursor-not-allowed'
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
+                    }`}
                   title={isLoading ? 'Please wait...' : 'Add attachments'}
                 >
                   <Plus className="h-5 w-5" />
@@ -240,7 +238,7 @@ export default function MessageInput({
                     onClose={() => setShowPlusMenu(false)}
                     anchorRef={plusButtonRef}
                     selectedLlm={selectedLlm || 'openai'}
-                    setSelectedLlm={setSelectedLlm || (() => {})}
+                    setSelectedLlm={setSelectedLlm || (() => { })}
                     documentToggleStates={documentToggleStates}
                     setDocumentToggleStates={setDocumentToggleStates}
                   />
@@ -263,13 +261,12 @@ export default function MessageInput({
                   placeholder={
                     isLoading
                       ? 'Waiting for response...'
-                      : 'Enter your medical query here…'
+                      : 'Enter your government policy query here…'
                   }
                   className={`flex-1 resize-none border-none outline-none bg-transparent min-h-[36px] max-h-32 text-base py-2 transition-colors
-                    ${
-                      isLoading
-                        ? 'cursor-not-allowed text-gray-400 placeholder:text-gray-300'
-                        : 'placeholder:text-gray-500'
+                    ${isLoading
+                      ? 'cursor-not-allowed text-gray-400 placeholder:text-gray-300'
+                      : 'placeholder:text-gray-500'
                     }
                     ${message ? 'text-left' : 'text-center placeholder:text-center'}
                   `}
@@ -284,13 +281,12 @@ export default function MessageInput({
                   type="button"
                   onClick={handleVoiceInput}
                   disabled={isLoading}
-                  className={`p-2 rounded-full transition-all ${
-                    isRecording
+                  className={`p-2 rounded-full transition-all ${isRecording
                       ? 'bg-red-100 text-red-600 animate-pulse'
                       : isLoading
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    }`}
                   title={isRecording ? 'Recording...' : 'Start voice input'}
                 >
                   <Mic className="h-5 w-5" />
@@ -300,17 +296,16 @@ export default function MessageInput({
                 <button
                   type="submit"
                   disabled={!message.trim() || isLoading}
-                  className={`p-2 rounded-full transition-all ${
-                    message.trim() && !isLoading
+                  className={`p-2 rounded-full transition-all ${message.trim() && !isLoading
                       ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
+                    }`}
                   title={
                     isLoading
                       ? 'Please wait...'
                       : !message.trim()
-                      ? 'Enter a message'
-                      : 'Send message'
+                        ? 'Enter a message'
+                        : 'Send message'
                   }
                 >
                   <Send className="h-5 w-5" />

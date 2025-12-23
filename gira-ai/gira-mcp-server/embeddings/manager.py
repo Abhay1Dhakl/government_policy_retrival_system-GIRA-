@@ -107,26 +107,28 @@ async def build_dynamic_corpus():
             "jurisdiction and authority", "administrative procedures", "appeal mechanisms", "exemptions and exceptions",
             "government agencies", "ministerial powers", "enforcement mechanisms", "stakeholder obligations",
             "section provisions", "article requirements", "clause definitions", "penalty provisions",
-            "arrhythmia", "cardiac arrhythmia", "heart rhythm", "ventricular arrhythmia",
-            "torsades de pointes", "cardiac toxicity", "cardiovascular effects",
-            "electrocardiogram", "ECG changes", "cardiac monitoring"
+            "constitutional rights", "fundamental freedom", "federal structure", "judicial review",
+            "education policy", "school management", "university grants Commission",
+            "public health", "medical registration", "government directive"
         ]
         
         all_documents = []
         
+        # Search for documents. 
+        # Note: Currently many documents are indexed as 'pis' in the database.
+        # We search with no filter for the corpus build to catch everything.
         for query in policy_queries:
             query_vector = await get_embedding_async(query)
             
-            for doc_type in ["act", "regulation", "directive"]:
-                try:
-                    response = await execute_pinecone_query_async(
-                        query_vector=query_vector,
-                        filter_dict={"document_type": doc_type},
-                        top_k=50
-                    )
-                    all_documents.extend(response.get("matches", []))
-                except Exception as e:
-                    pass
+            try:
+                response = await execute_pinecone_query_async(
+                    query_vector=query_vector,
+                    filter_dict={},  # Use no filter to catch all current documents (pis, act, etc)
+                    top_k=50
+                )
+                all_documents.extend(response.get("matches", []))
+            except Exception as e:
+                pass
         
         _policy_corpus = extract_policy_corpus_from_documents(all_documents)
         _corpus_last_updated = datetime.now()

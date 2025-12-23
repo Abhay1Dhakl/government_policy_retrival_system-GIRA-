@@ -30,7 +30,7 @@ class Settings:
     MINIO_ENDPOINT: Optional[str] = os.getenv("MINIO_ENDPOINT")
     MINIO_ACCESS_KEY: Optional[str] = os.getenv("MINIO_ACCESS_KEY")
     MINIO_SECRET_KEY: Optional[str] = os.getenv("MINIO_SECRET_KEY")
-    MINIO_BUCKET: str = os.getenv("MINIO_BUCKET", "medical-documents")
+    MINIO_BUCKET: str = os.getenv("MINIO_BUCKET", "government-documents")
     MINIO_SECURE: bool = os.getenv("MINIO_SECURE", "false").lower() == "true"
     
     # ========== Database Configuration ==========

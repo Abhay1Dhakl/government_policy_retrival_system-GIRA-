@@ -119,10 +119,32 @@ async def _execute_document_search(tool_name: str, query: str, document_type: Op
 
 # MCP Tools
 
-@mcp.tool(name="general_search", description="Search all government documents (Acts, policies, regulations, etc.)")
-async def general_search(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve documents across all types using hybrid search."""
-    return await _execute_document_search("General", query, None, country)
+@mcp.tool(name="search_policies", description="Search all government policy documents including Constitution, Acts, Laws, Regulations, Education policies, and more")
+async def search_policies(query: str, country: str = None) -> Dict[str, Any]:
+    """Primary tool to search ALL government policy documents using hybrid search.
+    Use this for any policy, law, regulation, constitution, or government document question.
+    """
+    # Search with NO document_type filter to find everything
+    return await _execute_document_search("Policies", query, None, country)
+
+
+@mcp.tool(name="search_constitution", description="Search constitutional documents and fundamental laws")
+async def search_constitution(query: str, country: str = None) -> Dict[str, Any]:
+    """Search constitutional documents, fundamental rights, and primary legislation."""
+    # Search with NO filter since documents are indexed as 'pis' temporarily
+    return await _execute_document_search("Constitution", query, None, country)
+
+
+@mcp.tool(name="search_education", description="Search education policies, laws, and regulations")
+async def search_education(query: str, country: str = None) -> Dict[str, Any]:
+    """Search education-related policies, acts, and regulations."""
+    return await _execute_document_search("Education", query, None, country)
+
+
+@mcp.tool(name="search_health", description="Search health policies and medical regulations")
+async def search_health(query: str, country: str = None) -> Dict[str, Any]:
+    """Search health policies, medical regulations, and healthcare laws."""
+    return await _execute_document_search("Health", query, None, country)
 
 
 @mcp.tool(name="system_status", description="Check system status and available features")
@@ -154,25 +176,6 @@ async def rebuild_corpus() -> Dict[str, Any]:
         }
     except Exception as e:
         return {"status": "error", "error": str(e)}
-
-@mcp.tool(name="constitution", description="Search Constitution and primary legislation documents")
-async def document1(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve constitutional and primary legislation documents using hybrid search."""
-    # Currently documents are indexed as 'pis' - needs migration to 'act'
-    return await _execute_document_search("Constitution", query, "pis", country)
-
-
-@mcp.tool(name="acts", description="Search government acts and legislation") 
-async def document2(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve government acts and legislative documents using hybrid search."""
-    return await _execute_document_search("Acts", query, "pis", country)
-
-
-@mcp.tool(name="regulations", description="Search regulations and bylaws")
-async def document3(query: str, country: str = None) -> Dict[str, Any]:
-    """Retrieve regulatory documents and bylaws using hybrid search."""
-    # Update to 'regulation' once documents are properly indexed
-    return await _execute_document_search("Regulations", query, "pis", country)
 
 
 @mcp.tool(name="past_cases", description="Get past cases with hybrid search")

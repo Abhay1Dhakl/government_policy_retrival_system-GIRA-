@@ -27,9 +27,9 @@ ENV USE_OPENAI_EMBEDDINGS=true \
 # Expose port
 EXPOSE 8001
 
-# Health check
+# Health check - check if the port is listening
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8001/health || exit 1
+    CMD python -c "import socket; s = socket.socket(); s.connect(('localhost', 8001))" || exit 1
 
 # Run WITHOUT model prefetch (using OpenAI API)
 CMD ["python", "main.py"]

@@ -14,28 +14,28 @@ export interface LLMOption {
 
 export const documentTypeOptions: DocumentTypeOption[] = [
   {
-    id: 'general',
-    label: 'All Documents',
+    id: 'policies',
+    label: 'All Policies',
     enabled: true,
-    toolName: 'general_search'
+    toolName: 'search_policies'
   },
   {
     id: 'constitution',
     label: 'Constitution',
     enabled: true,
-    toolName: 'constitution'
+    toolName: 'search_constitution'
   },
   {
-    id: 'acts',
-    label: 'Acts & Legislation',
+    id: 'education',
+    label: 'Education',
     enabled: true,
-    toolName: 'acts'
+    toolName: 'search_education'
   },
   {
-    id: 'regulations',
-    label: 'Regulations & Bylaws',
+    id: 'health',
+    label: 'Health',
     enabled: true,
-    toolName: 'regulations'
+    toolName: 'search_health'
   },
   {
     id: 'past-cases',

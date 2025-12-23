@@ -15,20 +15,32 @@ STOPWORDS = {
 }
 
 DOCUMENT_TYPE_SYNONYMS = {
+    "constitution": {
+        "constitution", "constitutional", "fundamental", "supreme_law",
+        "nepal constitution", "constitution of nepal"
+    },
     "act": {
         "act", "acts", "legislation", "law", "statute",
-        "legislative_act", "government_act",
-        "government act"
+        "legislative_act", "government_act", "government act", "pis", "PIS"
     },
     "regulation": {
         "regulation", "regulations", "regulatory", "rule",
-        "rules", "regulatory_document", "regulatory document", "policy"
+        "rules", "regulatory_document", "regulatory document", "bylaw", "bylaws"
     },
     "directive": {
         "directive", "directives", "government_directive", "official_directive", "official directive",
-        "policy_directive"
+        "policy_directive", "circular", "circulars"
     },
-    "amendment": {"amendment", "amendments", "legislative_amendment", "policy_amendment"}
+    "education": {
+        "education", "educational", "school", "university", "academic",
+        "curriculum", "education_policy", "education policy"
+    },
+    "health": {
+        "health", "healthcare", "medical", "hospital", "clinical",
+        "health_policy", "health policy", "public_health"
+    },
+    "amendment": {"amendment", "amendments", "legislative_amendment", "policy_amendment"},
+    "policy": {"policy", "policies", "government_policy", "public_policy"}
 }
 
 SECTION_PRIORITY_WEIGHTS = {

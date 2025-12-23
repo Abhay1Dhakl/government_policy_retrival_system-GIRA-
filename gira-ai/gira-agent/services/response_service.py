@@ -108,7 +108,7 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
                         inner = clean
                     inner = str(inner).strip()
                     # If inner contains the known fallback lines, skip it
-                    fallback_detect = ("No PI document available" in inner and "No LRD document available" in inner)
+                    fallback_detect = ("No policy document available" in inner and "No regulatory document available" in inner)
                     if not fallback_detect and inner:
                         past_texts.append(inner[:200])
                 if past_texts:
@@ -125,7 +125,7 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
             total_found = data.get("total_found", 0)
 
             # Note: Removed strict document_type filtering to allow cross-document information
-            # (e.g., drug interactions mentioning the query drug from other drug PIs)
+            # (e.g., cross-references between different government acts or policies)
             print(f"[process_structured_response] {tool_name}: Processing {len(matches)} matches without document_type filtering", file=sys.stderr)
             
             # Limit matches processing for faster performance
@@ -151,7 +151,7 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
             total_found = data.get("total_found", 0)
 
             # Note: Removed strict document_type filtering to allow cross-document information
-            # (e.g., drug interactions mentioning the query drug from other drug PIs)
+            # (e.g., cross-references between different government acts or policies)
             print(f"[process_structured_response] {tool_name}: Processing {len(matches)} matches without document_type filtering", file=sys.stderr)
             
             # Limit matches processing for faster performance
