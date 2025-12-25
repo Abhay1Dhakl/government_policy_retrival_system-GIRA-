@@ -154,13 +154,13 @@ async def store_document(data, text_content=None):
             print(f"Upserting batch {i//BATCH_SIZE + 1}/{(len(vectors_to_upsert) + BATCH_SIZE - 1)//BATCH_SIZE} ({len(batch)} vectors)")
             upsert_response = index.upsert(batch)
             total_upserted += len(batch)
-            print(f"✅ Batch upserted successfully: {upsert_response.get('upserted_count', len(batch))} vectors")
+            print(f" Batch upserted successfully: {upsert_response.get('upserted_count', len(batch))} vectors")
     except Exception as upsert_error:
         print(f"Upsert failed: {upsert_error}")
         print(f"Successfully upserted {total_upserted} vectors before error")
         raise
 
-    print(f"✅ All vectors upserted: {total_upserted} total chunks")
+    print(f" All vectors upserted: {total_upserted} total chunks")
     return {
         "instance_id": instance_id,
         "status": "stored",

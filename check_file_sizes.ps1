@@ -78,7 +78,7 @@ if ($results["Warning"].Count -gt 0) {
 
 # Good Files (200-300 lines)
 if ($results["Good"].Count -gt 0) {
-    Write-Host "✅ GOOD - Files 200-300 lines (Target range):" -ForegroundColor Green
+    Write-Host " GOOD - Files 200-300 lines (Target range):" -ForegroundColor Green
     $results["Good"] | Sort-Object -Property Lines -Descending | ForEach-Object {
         Write-Host ("  {0,5} lines  {1}" -f $_.Lines, $_.Path) -ForegroundColor Green
     }
@@ -106,7 +106,7 @@ Write-Host ""
 if ($problematicFiles -gt 0) {
     Write-Host "⚠️  Action Required: $problematicFiles files need refactoring" -ForegroundColor Yellow
 } else {
-    Write-Host "✅ All files meet the size requirements!" -ForegroundColor Green
+    Write-Host " All files meet the size requirements!" -ForegroundColor Green
 }
 
 Write-Host "==============================================================" -ForegroundColor Cyan

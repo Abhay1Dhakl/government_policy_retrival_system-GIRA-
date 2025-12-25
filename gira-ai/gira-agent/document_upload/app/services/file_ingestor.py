@@ -615,7 +615,7 @@ async def ingest_from_file(data, file):
 
             print(f" PDF has {len(page_texts)} pages")
 
-            # ✅ FIXED: Process each page independently (page-by-page semantic chunking)
+            #  FIXED: Process each page independently (page-by-page semantic chunking)
             for idx, page_text in enumerate(page_texts, start=1):
                 try:
                     orig_len = len(page_text) if page_text else 0
@@ -628,7 +628,7 @@ async def ingest_from_file(data, file):
                         metadata.append({"page": idx, "text": "", "chunks": 0})
                         continue
 
-                    # ✅ KEY FIX: Process EACH page separately with its correct page number
+                    #  KEY FIX: Process EACH page separately with its correct page number
                     print(f" Chunking page {idx} ({len(page_text)} chars)")
                     
                     page_chunks = healthcare_storage.process_document_text(

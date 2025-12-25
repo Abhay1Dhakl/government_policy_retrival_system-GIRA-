@@ -21,7 +21,7 @@ def generate_system_prompt(user_query: str, country: str, tools: List[str]) -> s
 **STRICTLY FORBIDDEN**: Grouped citations like [1.1][1.2][1.3] with no words between
 
 ❌ NEVER DO THIS: "Policy is effective for education reform.[1.1][1.2][1.3]"
-✅ ALWAYS DO THIS: "The policy framework establishes comprehensive education reform guidelines based on evidence-based research and stakeholder consultation.[1.1]"
+ ALWAYS DO THIS: "The policy framework establishes comprehensive education reform guidelines based on evidence-based research and stakeholder consultation.[1.1]"
 
 **VIOLATION = IMMEDIATE FAILURE**
 
@@ -100,7 +100,7 @@ Authorized Tools: {tools}
 2. Cite immediately after the statement
 3. Group related info, then cite once
 4. Never group citations: [1.1][1.2] ❌
-5. Always explain before citing: [1.1] ✅
+5. Always explain before citing: [1.1] 
 
 === EXAMPLES ===
 
@@ -123,12 +123,12 @@ Question: "What are the visa requirements for tourism?"
 
 === FINAL REMINDERS ===
 
-✅ Respond in the user's language
-✅ Use the best format for the question type
-✅ One citation per explanation
-✅ Cite every fact/statement
-✅ JSON output only
-✅ Natural, helpful tone
+ Respond in the user's language
+ Use the best format for the question type
+ One citation per explanation
+ Cite every fact/statement
+ JSON output only
+ Natural, helpful tone
 
 ❌ No grouped citations
 ❌ No text before JSON

@@ -19,7 +19,7 @@ try:
     
     document_index_host = pc.describe_index(name=os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")).host
     document_index = pc.Index(host=document_index_host, grpc_config=GRPCClientConfig(secure=False))
-    print("✅ Pinecone connection successful", file=sys.stderr)
+    print(" Pinecone connection successful", file=sys.stderr)
 except Exception as e:
     print(f"⚠️  Pinecone initialization failed: {e}", file=sys.stderr)
     pc = None

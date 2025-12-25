@@ -1,6 +1,6 @@
 # MCP Server Issues Fixed - 2025-12-23
 
-## ✅ Issues Resolved
+##  Issues Resolved
 
 ### 1. **Migrated to google-genai Package** 
 - **Problem**: Using deprecated `google-generativeai` package causing warnings
@@ -21,10 +21,10 @@
 - **File Changed**: `/gira-ai/gira-mcp-server/main.py`
 
 ### 3. **MCP Server Now Running Successfully**
-- ✅ Gemini API: Connected successfully with `google-genai`
-- ✅ Pinecone: Connected to `government-policy-retrival-system` index
-- ✅ BM25: Available for hybrid search
-- ✅ Server: Running on port 8001
+-  Gemini API: Connected successfully with `google-genai`
+-  Pinecone: Connected to `government-policy-retrival-system` index
+-  BM25: Available for hybrid search
+-  Server: Running on port 8001
 
 ## ⚠️ CRITICAL ISSUE: Wrong Document Types in Database
 
@@ -34,7 +34,7 @@ Your logs show:
 PINECONE QUERY DEBUG:
   Filter: {'document_type': {'$in': ['pis', 'PIS']}, 'region': {'$in': ['NEPAL', 'NP']}}
 📊 PINECONE RESULT DEBUG:
-  Total matches: 20  ✅ (Constitution found!)
+  Total matches: 20   (Constitution found!)
 
 PINECONE QUERY DEBUG:
   Filter: {'document_type': {'$in': ['lrd', 'LRD']}}
@@ -110,7 +110,7 @@ Expected behavior:
 1. MCP server receives query
 2. Calls `constitution` or `acts` tool
 3. Searches Pinecone with `document_type: pis, region: NEPAL`
-4. Returns 20 matches ✅
+4. Returns 20 matches 
 5. LLM generates answer with citations
 
 ## 📊 How to Verify Documents Are Working
@@ -140,7 +140,7 @@ asyncio.run(test())
 
 ## 📋 Next Steps
 
-1. ✅ **Test the current setup** - Verify queries return answers
+1.  **Test the current setup** - Verify queries return answers
 2. ⚠️ **Plan data migration** - Decide on proper document type taxonomy
 3. 🔄 **Re-index documents** - Upload with correct `document_type` values
 4. ✨ **Update MCP tools** - Change from `pis` to proper types

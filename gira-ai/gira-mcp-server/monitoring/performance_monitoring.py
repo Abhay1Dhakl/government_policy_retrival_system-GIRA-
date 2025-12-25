@@ -122,7 +122,7 @@ class PerformanceMonitor:
                 'description': 'Baseline performance metrics'
             }, f, indent=2)
 
-        print(f"✅ Baseline metrics set: {baseline_metrics}")
+        print(f" Baseline metrics set: {baseline_metrics}")
 
     def establish_baseline(self, days: int = 7):
         """Establish baseline from recent performance history"""
@@ -149,7 +149,7 @@ class PerformanceMonitor:
                 baseline_metrics[metric] = statistics.mean(values)
 
         self.set_baseline(baseline_metrics)
-        print(f"✅ Established baseline from {len(recent_measurements)} measurements")
+        print(f" Established baseline from {len(recent_measurements)} measurements")
 
     def _check_alerts(self, measurement: Dict[str, Any]):
         """Check if current measurement triggers any alerts"""

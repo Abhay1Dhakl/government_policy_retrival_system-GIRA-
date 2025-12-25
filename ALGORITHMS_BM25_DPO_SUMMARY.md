@@ -641,10 +641,10 @@ The GIRA system leverages:
 2. **DPO** for continuous model improvement through user feedback
 
 Together, they create a hybrid AI system that:
-- ✅ Combines dense and sparse retrieval
-- ✅ Learns from user preferences
-- ✅ Improves over time automatically
-- ✅ Maintains high performance and interpretability
+-  Combines dense and sparse retrieval
+-  Learns from user preferences
+-  Improves over time automatically
+-  Maintains high performance and interpretability
 
 ---
 

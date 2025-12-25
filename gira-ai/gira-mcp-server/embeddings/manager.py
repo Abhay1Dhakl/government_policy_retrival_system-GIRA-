@@ -15,7 +15,7 @@ try:
     from embeddings.gemini_embeddings import get_gemini_embedding_async, initialize_gemini, get_gemini_embedding
     gemini_available = initialize_gemini()
     if gemini_available:
-        print("✅ Gemini API initialized successfully", file=sys.stderr)
+        print(" Gemini API initialized successfully", file=sys.stderr)
     else:
         print("⚠️ Gemini API not available", file=sys.stderr)
 except ImportError as e:

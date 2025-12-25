@@ -125,7 +125,7 @@ class ABTester:
         # Save results
         self._save_experiment_results(experiment_name, all_results, summary)
 
-        print(f"✅ Experiment {experiment_name} completed")
+        print(f" Experiment {experiment_name} completed")
         print(f"🏆 Winner: {summary.winner} (confidence: {summary.confidence_level:.2f})")
 
         return summary

@@ -121,11 +121,11 @@ results = [
 
 ### Advantages of Dense Search
 
-✅ **Semantic Understanding**: Understands meaning beyond keywords  
-✅ **Synonym Handling**: Finds related concepts (e.g., "vaccine" ↔ "immunization")  
-✅ **Typo Tolerance**: Handles spelling variations  
-✅ **Long Queries**: Works with complex government questions  
-✅ **Conceptual Search**: Finds documents about similar topics  
+ **Semantic Understanding**: Understands meaning beyond keywords  
+ **Synonym Handling**: Finds related concepts (e.g., "vaccine" ↔ "immunization")  
+ **Typo Tolerance**: Handles spelling variations  
+ **Long Queries**: Works with complex government questions  
+ **Conceptual Search**: Finds documents about similar topics  
 
 ### Limitations
 
@@ -200,11 +200,11 @@ results = sorted_by_score(document_scores)
 
 ### Advantages of BM25
 
-✅ **Fast**: Instant keyword matching (~10-20ms)  
-✅ **Memory Efficient**: Minimal memory requirements  
-✅ **Exact Matching**: Finds exact regulatory terminology  
-✅ **Interpretable**: Clear why document matched  
-✅ **Scalable**: Works with millions of documents  
+ **Fast**: Instant keyword matching (~10-20ms)  
+ **Memory Efficient**: Minimal memory requirements  
+ **Exact Matching**: Finds exact regulatory terminology  
+ **Interpretable**: Clear why document matched  
+ **Scalable**: Works with millions of documents  
 
 ### Limitations
 
@@ -578,11 +578,11 @@ def get_cached_gemini_embedding(query, task_type):
 
 The **Hybrid Search** approach provides:
 
-✅ **Best of both worlds** - Semantic understanding + keyword accuracy  
-✅ **Adaptability** - Adjusts strategy based on query type  
-✅ **Scalability** - Handles millions of government documents  
-✅ **Relevance** - Comprehensive quality scoring  
-✅ **Performance** - Fast execution with low latency  
+ **Best of both worlds** - Semantic understanding + keyword accuracy  
+ **Adaptability** - Adjusts strategy based on query type  
+ **Scalability** - Handles millions of government documents  
+ **Relevance** - Comprehensive quality scoring  
+ **Performance** - Fast execution with low latency  
 
 Perfect for **Government Information Retrieval Systems** where both **regulatory precision** and **conceptual understanding** are essential.
 

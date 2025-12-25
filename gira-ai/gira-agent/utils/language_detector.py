@@ -116,5 +116,5 @@ if __name__ == "__main__":
     print("Testing language detection:")
     for expected_lang, text in test_texts.items():
         detected_lang = detect_language(text)
-        result = "✅" if detected_lang == expected_lang else "❌"
+        result = "" if detected_lang == expected_lang else "❌"
         print(f"{result} Expected: {expected_lang}, Detected: {detected_lang} ({get_language_name(detected_lang)})")

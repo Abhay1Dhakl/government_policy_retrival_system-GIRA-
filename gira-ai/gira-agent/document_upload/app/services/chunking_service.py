@@ -282,7 +282,7 @@ class UniversalHealthcareChunker:
         for idx, chunk in enumerate(chunks):
             chunk['chunk_index'] = idx
         
-        print(f"[CHUNKER] Page {page_number}: ✅ Created {len(chunks)} final chunks")
+        print(f"[CHUNKER] Page {page_number}:  Created {len(chunks)} final chunks")
         return chunks
     
     def _chunk_section(

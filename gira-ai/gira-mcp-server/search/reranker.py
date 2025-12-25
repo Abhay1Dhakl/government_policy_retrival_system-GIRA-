@@ -44,7 +44,7 @@ class MedicalReranker:
             try:
                 device = "cuda" if use_gpu else "cpu"
                 self.model = CrossEncoder(model_name, max_length=max_length, device=device)
-                print(f"✅ Cross-encoder initialized: {model_name}")
+                print(f" Cross-encoder initialized: {model_name}")
             except Exception as e:
                 print(f"❌ Failed to initialize cross-encoder: {e}")
                 self.model = None
@@ -100,7 +100,7 @@ class MedicalReranker:
                 reranked_docs = reranked_docs[:top_k]
 
             rerank_time = time.time() - start_time
-            print(f"✅ Re-ranking completed in {rerank_time:.3f}s for {len(reranked_docs)} documents")
+            print(f" Re-ranking completed in {rerank_time:.3f}s for {len(reranked_docs)} documents")
             return reranked_docs
 
         except Exception as e:

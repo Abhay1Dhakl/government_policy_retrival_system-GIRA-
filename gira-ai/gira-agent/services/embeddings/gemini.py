@@ -35,7 +35,7 @@ def initialize_gemini():
 
     try:
         _client = genai.Client(api_key=GEMINI_API_KEY)
-        print("✅ Gemini API client initialized successfully", file=sys.stderr)
+        print(" Gemini API client initialized successfully", file=sys.stderr)
         return True
     except Exception as e:
         print(f"❌ Failed to initialize Gemini API client: {e}", file=sys.stderr)
@@ -118,7 +118,7 @@ def test_gemini_embeddings():
     try:
         embedding = get_gemini_embedding("test government policy query about education reform")
         if embedding and len(embedding) == 1024:
-            print(f"✅ Gemini embeddings working! Dimension: {len(embedding)}")
+            print(f" Gemini embeddings working! Dimension: {len(embedding)}")
             return True
         else:
             print(f"❌ Unexpected embedding dimension: {len(embedding) if embedding else 'None'}")

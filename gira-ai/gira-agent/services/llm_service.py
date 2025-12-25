@@ -231,7 +231,7 @@ def validate_llm_setup(llm_option: str) -> Dict[str, Union[bool, str]]:
         llm = choose_llm(llm_option)
         return {
             "valid": True,
-            "message": f"✅ {llm_option} is properly configured"
+            "message": f" {llm_option} is properly configured"
         }
     except Exception as e:
         return {

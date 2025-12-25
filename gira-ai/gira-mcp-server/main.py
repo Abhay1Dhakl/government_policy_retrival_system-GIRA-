@@ -35,7 +35,7 @@ mcp = FastMCP(
 
 # Initialize Gemini
 gemini_available = initialize_gemini()
-print(f"Gemini API: {'✅ Available' if gemini_available else '❌ Unavailable'}", file=sys.stderr)
+print(f"Gemini API: {' Available' if gemini_available else '❌ Unavailable'}", file=sys.stderr)
 async def execute_tool_with_timing(tool_name: str, query: str, document_type: Optional[str], country: str = None, user_id: str = None):
     """Execute tool with hybrid search and performance timing"""
     start_time = time.time()
@@ -306,7 +306,7 @@ async def startup():
     print("GIRA MCP Server starting up...", file=sys.stderr)
 
     print("System Status:", file=sys.stderr)
-    print(f" Gemini API: {'Available ✅' if gemini_available else 'Unavailable ❌'}", file=sys.stderr)
+    print(f" Gemini API: {'Available ' if gemini_available else 'Unavailable ❌'}", file=sys.stderr)
     print(f" BM25: {'Available' if rank_bm25 else 'Unavailable (semantic search only)'}", file=sys.stderr)
     print(f" Pinecone: {'Connected' if document_index else 'Not connected'}", file=sys.stderr)
 
@@ -314,7 +314,7 @@ async def startup():
         print(" Warming up Gemini API...", file=sys.stderr)
         test_embedding = await get_embedding_async("government terminology test query")
         if test_embedding:
-            print(f" ✅ Gemini API ready (embedding dimension: {len(test_embedding)})", file=sys.stderr)
+            print(f"  Gemini API ready (embedding dimension: {len(test_embedding)})", file=sys.stderr)
         else:
             print(" ⚠️ Gemini API test failed", file=sys.stderr)
 
