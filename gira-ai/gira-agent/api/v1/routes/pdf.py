@@ -93,14 +93,10 @@ async def highlight_pdf_text(req: HighlightTextRequest, request: Request):
                 try:
                     import tempfile
                     # Download from MinIO to temporary file
-                    minio_object_name = result["minio_object_name"]
-                    temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
-                    
                     # Download from MinIO highlighted bucket
-                    pdf_highlighter.minio_client.fget_object(
-                        pdf_highlighter.highlighted_bucket, 
+                    temp_file = pdf_highlighter.minio.download_file(
                         minio_object_name, 
-                        temp_file.name
+                        bucket=pdf_highlighter.minio.highlighted_bucket
                     )
                     
                     print(f"Downloaded {minio_object_name} from MinIO for direct file return")

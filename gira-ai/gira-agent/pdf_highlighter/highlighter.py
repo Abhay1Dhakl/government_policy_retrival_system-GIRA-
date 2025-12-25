@@ -108,13 +108,18 @@ class PolicyHighlighter:
             output_path = os.path.join(self.upload_directory, output_filename)
             doc.save(output_path)
             
-            result = {"local_path": output_path}
+            result = {
+                "local_path": output_path,
+                "total_matches": total_matches,
+                "original_name": original_name
+            }
             
             # Upload to MinIO
             if self.minio.client:
                 minio_url = self.minio.upload_file(output_path, output_filename)
                 if minio_url:
                     result["url"] = minio_url
+                    result["minio_object_name"] = output_filename
                     # Schedule cleanup
                     self.cleanup.schedule_cleanup(output_path, self.minio, output_filename)
             
@@ -127,6 +132,44 @@ class PolicyHighlighter:
                     os.unlink(temp_file.name)
                 except:
                     pass
+
+    def highlight_text_in_pdf(self, 
+                             input_pdf_path: str, 
+                             texts_to_highlight: List[Dict], 
+                             user_id: str = None, 
+                             output_filename: str = None, 
+                             auto_cleanup: bool = True, 
+                             cleanup_delay: int = None) -> Dict:
+        """Compatibility method for older route expectations"""
+        try:
+            # Re-map arguments to highlight_text
+            res = self.highlight_text(
+                input_path=input_pdf_path,
+                highlights=texts_to_highlight,
+                output_filename=output_filename
+            )
+            
+            return {
+                "success": True,
+                "local_file_path": res.get("local_path"),
+                "minio_url": res.get("url"),
+                "minio_object_name": res.get("minio_object_name"),
+                "output_filename": os.path.basename(res.get("local_path", "output.pdf")),
+                "original_filename": res.get("original_name"),
+                "total_highlights": res.get("total_matches", 0),
+                "source_type": "url" if self._is_url(input_pdf_path) else "minio" if self._is_minio_path(input_pdf_path) else "local"
+            }
+        except Exception as e:
+            logger.error(f"Highlighting compatibility error: {e}")
+            return {"success": False, "error": str(e)}
+
+    @property
+    def minio_client(self):
+        return self.minio.client if self.minio else None
+        
+    @property
+    def highlighted_bucket(self):
+        return self.minio.highlighted_bucket if self.minio else "highlighted-policies"
 
     def _get_pdf_document(self, input_path: str) -> Tuple[fitz.Document, str, Optional[tempfile.NamedTemporaryFile]]:
         """Resolve input path to PDF document"""

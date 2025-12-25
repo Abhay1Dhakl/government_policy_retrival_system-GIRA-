@@ -136,7 +136,11 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
             # More detailed check - ensure we have actual content, not just empty matches
             has_content = False
             for match in matches_to_process:  # Use limited matches
-                if match.get("text", "").strip():
+                match_text = match.get("text", "") or match.get("content_preview", "")
+                if not match_text and "full_metadata" in match:
+                    match_text = match.get("full_metadata", {}).get("text", "")
+                
+                if str(match_text).strip():
                     has_content = True
                     break
 
@@ -162,7 +166,11 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
             # More detailed check - ensure we have actual content, not just empty matches
             has_content = False
             for match in matches_to_process:  # Use limited matches
-                if match.get("text", "").strip():
+                match_text = match.get("text", "") or match.get("content_preview", "")
+                if not match_text and "full_metadata" in match:
+                    match_text = match.get("full_metadata", {}).get("text", "")
+                
+                if str(match_text).strip():
                     has_content = True
                     break
 
@@ -217,7 +225,10 @@ def process_structured_response(data: dict, tool_name: str) -> tuple[str, list]:
                 # Add all text chunks from this page group
                 chunk_index = 1
                 for match in group_matches:
-                    text = match.get("text", "")
+                    text = match.get("text", "") or match.get("content_preview", "")
+                    if not text and "full_metadata" in match:
+                        text = match.get("full_metadata", {}).get("text", "")
+                    
                     chunk_score = match.get("score", 0.0)
                     
                     print(f"[process_structured_response] Group {group_index}, Chunk {chunk_index}: text_len={len(text)}, score={chunk_score}", file=sys.stderr)

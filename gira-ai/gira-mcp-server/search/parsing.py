@@ -115,10 +115,13 @@ def _process_search_matches(matches: List[Dict[str, Any]], max_matches: int = 20
         processed_match = {
             "id": match.get("id", ""),
             "score": match.get("score", 0.0),
-            "source_filename": source_filename,
+            "source": source_filename,
             "page_number": page_number,
             "chunk_index": chunk_index,
             "section_info": section_info,
+            "text": str(metadata.get("text", "")),
+            "document_type": document_type,
+            "region": metadata.get("region", ""),
             "content_preview": str(metadata.get("text", ""))[:200],
             "full_metadata": metadata
         }
