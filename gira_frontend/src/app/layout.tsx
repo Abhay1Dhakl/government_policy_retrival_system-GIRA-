@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MIRA",
-  description: "AI-powered personal assistant",
+  title: "GIRA",
+  description: "Government policy retrieval assistant",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

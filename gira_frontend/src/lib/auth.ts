@@ -52,6 +52,29 @@ export const authService = {
   },
 
   /**
+   * Store user feedback for a conversation/response
+   */
+  storeFeedback: async (feedbackData: Record<string, unknown>) => {
+    const token = authService.getToken();
+
+    const response = await fetch("/api/store-feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(feedbackData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to store feedback");
+    }
+
+    return response.json();
+  },
+
+  /**
    * Register new user
    */
   register: async (data: { email: string; password: string; name?: string }): Promise<AuthResponse> => {
