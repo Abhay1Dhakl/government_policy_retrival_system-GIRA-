@@ -8,6 +8,20 @@ from services.title_service import generate_title
 from services.streaming_utils import stream_by_words, stream_by_sentences, stream_by_tokens
 import re
 
+def _parse_int(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        return int(text)
+    except ValueError:
+        try:
+            return int(float(text))
+        except ValueError:
+            return None
+
 def _redistribute_trailing_citations(answer_text: str) -> str:
     """
     Move grouped end-of-paragraph citations so each attaches to the last
@@ -108,8 +122,8 @@ def create_precise_references(answer_text: str, filtered_chunks):
     doc_position_to_chunk = {}
     for tool_type in ['pi_chunks', 'lrd_chunks', 'other_chunks']:
         for chunk in filtered_chunks.get(tool_type, []):
-            doc_num = chunk.get('assigned_doc_num')
-            position = chunk.get('doc_chunk_position', 1)
+            doc_num = _parse_int(chunk.get('assigned_doc_num'))
+            position = _parse_int(chunk.get('doc_chunk_position', chunk.get('chunk_index')))
             if doc_num is None or position is None:
                 continue
             doc_position_to_chunk[(doc_num, position)] = chunk
@@ -119,7 +133,7 @@ def create_precise_references(answer_text: str, filtered_chunks):
     # Find citations in order of appearance (keep first occurrence per unique [doc,pos])
     citation_iter = re.finditer(r"\[(\d+)\.(\d+)\]", answer_text or "")
     seen = set()
-    usage_order_by_doc = {}
+    ordered_keys = []
     usage_snippet_by_key = {}
     for m in citation_iter:
         try:
@@ -131,7 +145,7 @@ def create_precise_references(answer_text: str, filtered_chunks):
         if key in seen:
             continue
         seen.add(key)
-        usage_order_by_doc.setdefault(d, []).append(p)
+        ordered_keys.append(key)
 
         # Extract a concise sentence-level snippet around the citation location
         # Find sentence boundaries within +/- 200 chars
@@ -166,123 +180,94 @@ def create_precise_references(answer_text: str, filtered_chunks):
             snippet = snippet[:220].rstrip() + '...'
         usage_snippet_by_key[key] = snippet
 
-    # Assign display positions by document based on usage order
-    # Build references grouped by doc number ascending
-    for doc_num in sorted(usage_order_by_doc.keys()):
-        positions = usage_order_by_doc[doc_num]
-        for display_position, chunk_position in enumerate(positions, start=1):
-            key = (doc_num, chunk_position)
-            if key not in doc_position_to_chunk:
-                print(f"[create_precise_references] WARNING: Citation [{doc_num}.{chunk_position}] not found in chunk mapping")
-                continue
-            chunk = doc_position_to_chunk[key]
+    for doc_num, chunk_position in ordered_keys:
+        key = (doc_num, chunk_position)
+        if key not in doc_position_to_chunk:
+            print(f"[create_precise_references] WARNING: Citation [{doc_num}.{chunk_position}] not found in chunk mapping")
+            continue
+        chunk = doc_position_to_chunk[key]
 
-            document_type = str(chunk.get('document_type', '')).lower()
-            if document_type in ['pis', 'pi', 'prescribing_information', 'prescribing information', 'policy', 'act', 'bill', 'main_policy']:
-                tool_label = "Policy Document"
-            elif document_type in ['lrd', 'labeling', 'regulatory', 'label', 'regulation', 'amendment', 'gazette', 'guideline']:
-                tool_label = "Regulatory Guideline"
-            else:
-                tool_label = "Other Document"
+        document_type = str(chunk.get('document_type', '')).lower()
+        if document_type in ['pis', 'pi', 'prescribing_information', 'prescribing information', 'policy', 'act', 'bill', 'main_policy']:
+            tool_label = "Policy Document"
+        elif document_type in ['lrd', 'labeling', 'regulatory', 'label', 'regulation', 'amendment', 'gazette', 'guideline']:
+            tool_label = "Regulatory Guideline"
+        else:
+            tool_label = "Other Document"
 
-            answer_segment = (
-                f"{tool_label}: {chunk.get('source', 'Unknown')} "
-                f"(Page {chunk.get('page_number', 'N/A')}, Chunk {chunk.get('chunk_index', 'N/A')})"
-            )
+        answer_segment = (
+            f"{tool_label}: {chunk.get('source', 'Unknown')} "
+            f"(Page {chunk.get('page_number', 'N/A')}, Chunk {chunk.get('chunk_index', 'N/A')})"
+        )
 
-            references.append({
-                "answer_segment": answer_segment,
-                "original_text": chunk.get("text", ""),
-                "answer_snippet": usage_snippet_by_key.get(key, ""),
-                "page_number": chunk.get("page_number", ""),
-                "chunk_index": chunk.get("chunk_index", ""),
-                "source": chunk.get("source", ""),
-                "reference_number": f"[{doc_num}.{display_position}]",
-                "original_citation": f"[{doc_num}.{chunk_position}]",
-            })
-            print(
-                f"[create_precise_references] Created reference [{doc_num}.{display_position}] "
-                f"(original: [{doc_num}.{chunk_position}]) for {chunk.get('source', 'Unknown')}"
-            )
+        references.append({
+            "answer_segment": answer_segment,
+            "original_text": chunk.get("text", ""),
+            "answer_snippet": usage_snippet_by_key.get(key, ""),
+            "page_number": chunk.get("page_number", ""),
+            "chunk_index": chunk.get("chunk_index", ""),
+            "source": chunk.get("source", ""),
+            "reference_number": f"[{doc_num}.{chunk_position}]",
+            "original_citation": f"[{doc_num}.{chunk_position}]",
+        })
+        print(
+            f"[create_precise_references] Created reference [{doc_num}.{chunk_position}] "
+            f"for {chunk.get('source', 'Unknown')}"
+        )
 
     return references
 
 def filter_and_group_chunks(all_chunk_metadata, tools):
     """
-    Group by actual document_type, keep top 5 per type, and assign
-    document-based citation numbers consistent with MCP logic.
+    Group by document_type buckets and assign document numbers based on
+    first appearance order across all chunks.
 
     Returns dict with 'pi_chunks', 'lrd_chunks', 'other_chunks', where each
     chunk includes:
       - assigned_doc_num: global document index across all paragraphs
-      - doc_chunk_position: 1-based index within its source document
+      - doc_chunk_position: chunk index used in citations
     """
     # Group chunks by document_type (NOT tool name)
     pi_chunks: list = []
     lrd_chunks: list = []
     other_chunks: list = []
 
+    doc_counter = 1
+    document_mapping = {}  # source -> doc_num
+
     for chunk in all_chunk_metadata:
+        src = chunk.get('source', 'Unknown')
+        if src not in document_mapping:
+            document_mapping[src] = doc_counter
+            doc_counter += 1
+
+        doc_num = document_mapping[src]
+        chunk_position = _parse_int(chunk.get('chunk_index'))
+
+        enriched = dict(chunk)
+        enriched['assigned_doc_num'] = doc_num
+        if chunk_position is not None:
+            enriched['doc_chunk_position'] = chunk_position
+
         document_type = str(chunk.get('document_type', '')).lower()
-        source = str(chunk.get('source', '')).lower()
+        source = str(src).lower()
         
         # Broaden categorization for government documents
         # Policy/Primary bucket (PI equivalent)
         if any(term in document_type for term in ['constitution', 'policy', 'act', 'bill', 'law', 'statute', 'pis', 'main']) or \
            any(term in source for term in ['constitution', 'act', 'policy']):
-            pi_chunks.append(dict(chunk))
+            pi_chunks.append(enriched)
         # Regulatory/Guideline bucket (LRD equivalent)
         elif any(term in document_type for term in ['regulation', 'directive', 'amendment', 'gazette', 'guideline', 'rule', 'bylaw', 'lrd']) or \
              any(term in source for term in ['regulation', 'directive', 'rule']):
-            lrd_chunks.append(dict(chunk))
+            lrd_chunks.append(enriched)
         else:
-            other_chunks.append(dict(chunk))
-
-    # Sort by score desc and cap to top 5 per category
-    def top5(chunks: list) -> list:
-        return sorted(chunks, key=lambda c: c.get('score', 0) or 0, reverse=True)[:5]
-
-    pi_top = top5(pi_chunks)
-    lrd_top = top5(lrd_chunks)
-    other_top = top5(other_chunks)
-
-    # Assign global document numbers in order: PI docs, then LRD, then Other
-    # Within each category, assign based on first appearance order by source among the top chunks
-    doc_counter = 1
-    document_mapping = {}  # (category, source) -> doc_num
-
-    def assign_doc_numbers(category_key: str, chunks: list):
-        nonlocal doc_counter
-        # Preserve stable order by first-seen source in this sorted list
-        seen_sources = []
-        chunks_by_source = {}
-        for ch in chunks:
-            src = ch.get('source', 'Unknown')
-            if src not in chunks_by_source:
-                chunks_by_source[src] = []
-                seen_sources.append(src)
-            chunks_by_source[src].append(ch)
-
-        for src in seen_sources:
-            key = (category_key, src)
-            if key not in document_mapping:
-                document_mapping[key] = doc_counter
-                doc_counter += 1
-            # Assign doc number to all chunks from this source
-            doc_num = document_mapping[key]
-            # Assign 1-based positions within this document based on order in this list
-            for idx, ch in enumerate(chunks_by_source[src], start=1):
-                ch['assigned_doc_num'] = doc_num
-                ch['doc_chunk_position'] = idx
-
-    assign_doc_numbers('pi_chunks', pi_top)
-    assign_doc_numbers('lrd_chunks', lrd_top)
-    assign_doc_numbers('other_chunks', other_top)
+            other_chunks.append(enriched)
 
     return {
-        'pi_chunks': pi_top,
-        'lrd_chunks': lrd_top,
-        'other_chunks': other_top,
+        'pi_chunks': pi_chunks,
+        'lrd_chunks': lrd_chunks,
+        'other_chunks': other_chunks,
         'document_mapping': document_mapping,
     }
 async def stream_ai_response(
@@ -393,19 +378,6 @@ async def stream_ai_response(
                     if clean_answer and filtered_chunks:
                         references.extend(create_precise_references(clean_answer, filtered_chunks))
                         print(f"[stream_query] Created {len(references)} precise references (LLM: {len(llm_references)}, Cited chunks: {len(cited_chunks)})")
-
-                        # Build mapping from original citations to new consecutive ones
-                        citation_mapping = {}
-                        for ref in references:
-                            if 'original_citation' in ref:
-                                citation_mapping[ref['original_citation']] = ref['reference_number']
-
-                        # Replace citations with a regex callback to avoid cascading replacements
-                        pattern = re.compile(r"\[(\d+)\.(\d+)\]")
-                        def _repl(m):
-                            raw = m.group(0)
-                            return citation_mapping.get(raw, raw)
-                        clean_answer = pattern.sub(_repl, clean_answer)
                         
                     else:
                         # Fallback to LLM references if no citations found
@@ -417,6 +389,14 @@ async def stream_ai_response(
             except json.JSONDecodeError as e:
                 print(f"[stream_query] Error parsing response as JSON: {e}")
                 clean_answer = full_response
+        
+        if not references and clean_answer and filtered_chunks:
+            # Fallback: extract citations even if JSON parsing failed or produced no references
+            clean_answer = _redistribute_trailing_citations(clean_answer)
+            cited_chunks = extract_citations_from_answer(clean_answer)
+            if cited_chunks:
+                references.extend(create_precise_references(clean_answer, filtered_chunks))
+                print(f"[stream_query] Fallback created {len(references)} references from raw answer text")
 
         # Stream the response based on stream_type
         print(f"[stream_query] Starting to stream. clean_answer length: {len(clean_answer)}")

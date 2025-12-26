@@ -1089,10 +1089,7 @@ export default function ChatPage() {
         })
 
       if (textsToHighlight.length > 0) {
-        let pdfPath = source
-        if (!pdfPath.startsWith("/") && !pdfPath.startsWith("http")) {
-          pdfPath = `/${pdfPath}`
-        }
+        const pdfPath = source
         const safeSourceName = source.replace(/[^a-zA-Z0-9-_\.]/g, "_")
         const outputFilename = `highlighted_${safeSourceName}`
 
@@ -1108,6 +1105,7 @@ export default function ChatPage() {
             output_filename: outputFilename,
             auto_cleanup: true,
             cleanup_delay: 3600,
+            return_file: true,
           }),
         })
 

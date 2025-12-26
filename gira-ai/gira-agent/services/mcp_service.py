@@ -188,9 +188,13 @@ async def query_mcp(user_query: str, llm: str, tools: List[str], country: str, u
             
             if all_chunk_metadata:
                 guide = "\n=== CITATION GUIDE ===\n"
-                for i, chunk in enumerate(all_chunk_metadata[:15]):
-                    guide += f"Document {i+1}: {chunk.get('source', 'Unknown')} (Page {chunk.get('page_number', 'N/A')})\n"
-                guide += "\nCite using [doc_num.chunk_index] format.\n"
+                doc_num_by_source = {}
+                for chunk in all_chunk_metadata:
+                    source = chunk.get("source", "Unknown")
+                    if source not in doc_num_by_source:
+                        doc_num_by_source[source] = len(doc_num_by_source) + 1
+                        guide += f"Document {doc_num_by_source[source]}: {source}\n"
+                guide += "\nCite using [doc_num.chunk_index] where chunk_index is the 'Chunk' value shown in the metadata lines.\n"
                 final_messages.insert(0, {"role": "system", "content": guide})
 
             print(f"[MCP] Final synthesis with {len(collected_tool_results)} results", file=sys.stderr)

@@ -58,9 +58,13 @@ async def highlight_pdf_text(req: HighlightTextRequest, request: Request):
         )
     
     try:
+        pdf_path = req.pdf_path
+        if pdf_path and pdf_path.startswith("/") and not os.path.exists(pdf_path):
+            pdf_path = pdf_path.lstrip("/")
+
         # Highlight text in PDF using global highlighter
         result = pdf_highlighter.highlight_text_in_pdf(
-            input_pdf_path=req.pdf_path,
+            input_pdf_path=pdf_path,
             texts_to_highlight=req.texts_to_highlight,
             user_id=user_id,
             output_filename=req.output_filename,
@@ -89,37 +93,52 @@ async def highlight_pdf_text(req: HighlightTextRequest, request: Request):
                             "X-Original-Filename": result["original_filename"]
                         }
                     )        
+                minio_object_name = result.get("minio_object_name")
+                if minio_object_name and pdf_highlighter.minio_client:
+                    try:
+                        # Download from MinIO highlighted bucket
+                        temp_file = pdf_highlighter.minio.download_file(
+                            minio_object_name,
+                            bucket=pdf_highlighter.minio.highlighted_bucket
+                        )
+                        
+                        print(f"Downloaded {minio_object_name} from MinIO for direct file return")
+                        
+                        # Return the downloaded file
+                        return FileResponse(
+                            path=temp_file.name,
+                            filename=result["output_filename"],
+                            media_type="application/pdf",
+                            headers={
+                                "Content-Disposition": f"inline; filename={result['output_filename']}",
+                                "X-Total-Highlights": str(result["total_highlights"]),
+                                "X-Source-Type": "minio",
+                                "X-Original-Filename": result["original_filename"]
+                            }
+                        )
+                    except Exception as e:
+                        print(f"Failed to download from MinIO: {e}")
+                        return JSONResponse(
+                            content={"error": f"Failed to download highlighted PDF from MinIO: {str(e)}"}, 
+                            status_code=500
+                        )
+                
+                return JSONResponse(
+                    content={"error": "Highlighted PDF not available for download"},
+                    status_code=500
+                )
             else:
-                try:
-                    import tempfile
-                    # Download from MinIO to temporary file
-                    # Download from MinIO highlighted bucket
-                    temp_file = pdf_highlighter.minio.download_file(
-                        minio_object_name, 
-                        bucket=pdf_highlighter.minio.highlighted_bucket
-                    )
-                    
-                    print(f"Downloaded {minio_object_name} from MinIO for direct file return")
-                    
-                    # Return the downloaded file
-                    return FileResponse(
-                        path=temp_file.name,
-                        filename=result["output_filename"],
-                        media_type="application/pdf",
-                        headers={
-                            "Content-Disposition": f"inline; filename={result['output_filename']}",
-                            "X-Total-Highlights": str(result["total_highlights"]),
-                            "X-Source-Type": "minio",
-                            "X-Original-Filename": result["original_filename"]
-                        }
-                    )
-                    
-                except Exception as e:
-                    print(f"Failed to download from MinIO: {e}")
-                    return JSONResponse(
-                        content={"error": f"Failed to download highlighted PDF from MinIO: {str(e)}"}, 
-                        status_code=500
-                    )
+                return JSONResponse(
+                    content={
+                        "success": True,
+                        "output_filename": result.get("output_filename"),
+                        "minio_url": result.get("minio_url"),
+                        "total_highlights": result.get("total_highlights", 0),
+                        "source_type": result.get("source_type"),
+                        "original_filename": result.get("original_filename"),
+                    },
+                    status_code=200
+                )
                 
         else:
             return JSONResponse(
@@ -133,4 +152,3 @@ async def highlight_pdf_text(req: HighlightTextRequest, request: Request):
             content={"error": "Failed to highlight PDF"}, 
             status_code=500
         )
-
