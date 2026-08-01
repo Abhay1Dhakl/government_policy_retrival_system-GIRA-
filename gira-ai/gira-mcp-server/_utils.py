@@ -7,18 +7,40 @@ used throughout the Government Information Retrieval System.
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from pinecone.grpc import PineconeGRPC, GRPCClientConfig
 from pinecone import Pinecone
+
+try:
+    from pinecone.grpc import GRPCClientConfig
+except ImportError:
+    GRPCClientConfig = None
 
 # Initialize Pinecone with error handling
 try:
-    pc = Pinecone(
-        api_key=os.getenv("PINECONE_API_KEY", "pcsk_2RGA3Z_LVfVmxNQ7A7DX7w5BuhEW4MTCGmGuSghX7GmMwizqWqVCumyrWCcMdtE1jDxgav"),
-        environment="aped-4627-b74a"
+    pinecone_api_key = os.getenv(
+        "PINECONE_API_KEY",
+        "pcsk_2RGA3Z_LVfVmxNQ7A7DX7w5BuhEW4MTCGmGuSghX7GmMwizqWqVCumyrWCcMdtE1jDxgav",
     )
+    pinecone_environment = os.getenv("PINECONE_ENVIRONMENT", "aped-4627-b74a")
+
+    try:
+        pc = Pinecone(
+            api_key=pinecone_api_key,
+            environment=pinecone_environment,
+        )
+    except TypeError as exc:
+        if "unexpected keyword arguments" not in str(exc) or "environment" not in str(exc):
+            raise
+        print(
+            "⚠️ Pinecone client does not accept `environment`; retrying without it",
+            file=sys.stderr,
+        )
+        pc = Pinecone(api_key=pinecone_api_key)
     
     document_index_host = pc.describe_index(name=os.getenv("PINECONE_INDEX_NAME", "government-policy-retrival-system")).host
-    document_index = pc.Index(host=document_index_host, grpc_config=GRPCClientConfig(secure=False))
+    if GRPCClientConfig is not None:
+        document_index = pc.Index(host=document_index_host, grpc_config=GRPCClientConfig(secure=False))
+    else:
+        document_index = pc.Index(host=document_index_host)
     print(" Pinecone connection successful", file=sys.stderr)
 except Exception as e:
     print(f"⚠️  Pinecone initialization failed: {e}", file=sys.stderr)

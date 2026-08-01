@@ -1,18 +1,31 @@
 """
 Title Generation Service
-Generates concise titles for government policy queries using LLM
+Generates concise titles for government policy queries.
 """
-import os
-import requests
-from config import settings
+import re
 from config.logging import get_logger
 
 logger = get_logger(__name__)
 
 
+def _fallback_title(user_query: str) -> str:
+    text = re.sub(r"\s+", " ", (user_query or "").strip())
+    if not text:
+        return "Untitled Query"
+
+    text = re.sub(r"^[^A-Za-z0-9]+", "", text)
+    text = text.rstrip("?.!,;:")
+    words = text.split()
+    if not words:
+        return "Untitled Query"
+
+    title = " ".join(words[:8])
+    return title[:80] or "Untitled Query"
+
+
 def generate_title(user_query: str) -> str:
     """
-    Generate a concise title for the user's query using OpenAI's GPT model.
+    Generate a concise title for the user's query without external API calls.
     
     Args:
         user_query: The user's government policy question
@@ -21,43 +34,7 @@ def generate_title(user_query: str) -> str:
         Generated title or "Untitled Query" on error
     """
     try:
-        if not settings.OPENAI_API_KEY or not settings.OPENAI_BASE_URL:
-            raise ValueError("OpenAI API key or base URL is not set in environment variables.")
-        
-        logger.debug(f"Generating title for query: {user_query[:50]}...")
-        
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
-        }
-        
-        prompt = f"Generate a concise title (max 10 words) for the following government policy question:\n\n{user_query}\n\nTitle:"
-        
-        payload = {
-            "model": settings.DEFAULT_LLM_MODEL,
-            "messages": [
-                {"role": "system", "content": "You are a helpful assistant that generates concise titles."},
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 20,
-            "temperature": 0.3,
-            "n": 1,
-            "stop": ["\n"]
-        }
-        
-        response = requests.post(
-            f"{settings.OPENAI_BASE_URL}/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=10
-        )
-        
-        logger.debug(f"OpenAI response status: {response.status_code}")
-        response.raise_for_status()
-        
-        data = response.json()
-        title = data['choices'][0]['message']['content'].strip()
-        
+        title = _fallback_title(user_query)
         logger.info(f"Generated title: {title}")
         return title
     

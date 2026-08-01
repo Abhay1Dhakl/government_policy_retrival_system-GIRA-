@@ -1,5 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config) => {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      canvas: false,
+    };
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      canvas: false,
+    };
+
+    return config;
+  },
   async rewrites() {
     return [
       {

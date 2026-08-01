@@ -38,9 +38,9 @@ def decode_user_id_from_header(request: Request) -> Tuple[Optional[str], Optiona
                 decoded_payload = jwt.decode(token, options={"verify_signature": False})
                 
                 user_id = decoded_payload.get("user_id")
-                country = decoded_payload.get("country")
-                
-                if user_id and country:
+                country = decoded_payload.get("country") or request.headers.get("X-Country") or "US"
+
+                if user_id:
                     logger.info(f"User authenticated via JWT: {user_id}")
                     return str(user_id), str(country)
                     

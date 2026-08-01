@@ -1,12 +1,46 @@
-from openai import AsyncOpenAI
+import asyncio
+import json
+import os
+import uuid
+from types import SimpleNamespace
+from typing import Any, Dict, List, Optional
+
+from google import genai
+from google.genai import types as gemini_types
 from anthropic import AsyncAnthropic
 import httpx
-import json
-from typing import Union, Dict, List, Any, Optional
 from dotenv import load_dotenv
-import os
+from openai import AsyncOpenAI
 
 load_dotenv()
+
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+
+
+class SimpleToolCall:
+    def __init__(self, name: str, arguments: str, tool_call_id: Optional[str] = None, gemini_part: Any = None):
+        self.id = tool_call_id or str(uuid.uuid4())
+        self.function = SimpleNamespace(name=name, arguments=arguments)
+        self._gemini_part = gemini_part
+
+
+class SimpleMessage:
+    def __init__(self, content: Optional[str], tool_calls: Optional[List[SimpleToolCall]] = None):
+        self.content = content
+        self.tool_calls = tool_calls or []
+
+
+class SimpleChoice:
+    def __init__(self, message: SimpleMessage):
+        self.message = message
+
+
+class SimpleResponse:
+    def __init__(self, choices: List[SimpleChoice]):
+        self.choices = choices
+
 
 class SimpleLLM:
     """Lightweight LLM wrapper without langchain"""
@@ -23,6 +57,8 @@ class SimpleLLM:
                 api_key=api_key,
                 base_url=base_url
             )
+        elif provider == "gemini":
+            self.client = genai.Client(api_key=api_key)
         elif provider == "anthropic":
             self.client = AsyncAnthropic(api_key=api_key)
         elif provider == "ollama":
@@ -34,6 +70,8 @@ class SimpleLLM:
         """Async invoke method"""
         if self.provider in ["openai", "mistral", "groq", "deepseek"]:
             return await self._invoke_openai(messages, tools)
+        elif self.provider == "gemini":
+            return await self._invoke_gemini(messages, tools)
         elif self.provider == "anthropic":
             return await self._invoke_anthropic(messages, tools)
         elif self.provider == "ollama":
@@ -43,6 +81,15 @@ class SimpleLLM:
     
     async def _invoke_openai(self, messages, tools):
         """Invoke OpenAI-compatible API"""
+        if self.provider == "openai" and self._messages_require_gemini(messages):
+            gemini_llm = SimpleLLM(
+                provider="gemini",
+                model=GEMINI_MODEL,
+                api_key=GEMINI_API_KEY,
+                temperature=self.temperature,
+            )
+            return await gemini_llm.ainvoke(messages, tools=tools)
+
         params = {
             "model": self.model,
             "messages": messages,
@@ -50,9 +97,268 @@ class SimpleLLM:
         }
         if tools:
             params["tools"] = tools
-        
-        response = await self.client.chat.completions.create(**params)
-        return response
+
+        try:
+            response = await self.client.chat.completions.create(**params)
+            return response
+        except Exception as exc:
+            if self.provider == "openai" and self._should_fallback_to_gemini(exc):
+                gemini_llm = SimpleLLM(
+                    provider="gemini",
+                    model=GEMINI_MODEL,
+                    api_key=GEMINI_API_KEY,
+                    temperature=self.temperature,
+                )
+                return await gemini_llm.ainvoke(messages, tools=tools)
+            raise
+
+    def _should_fallback_to_gemini(self, exc: Exception) -> bool:
+        if not GEMINI_API_KEY:
+            return False
+
+        status_code = getattr(exc, "status_code", None)
+        if status_code == 401:
+            return True
+
+        response = getattr(exc, "response", None)
+        if response is not None and getattr(response, "status_code", None) == 401:
+            return True
+
+        message = str(exc).lower()
+        return "invalid_api_key" in message or "incorrect api key" in message
+
+    def _messages_require_gemini(self, messages: List[Dict]) -> bool:
+        if not GEMINI_API_KEY:
+            return False
+
+        for msg in messages:
+            for tool_call in msg.get("tool_calls", []) or []:
+                if getattr(tool_call, "_gemini_part", None) is not None:
+                    return True
+        return False
+
+    async def _invoke_gemini(self, messages, tools):
+        """Invoke Gemini with OpenAI-compatible response shaping."""
+        if not tools and any(msg.get("role") == "tool" for msg in messages):
+            return await self._invoke_gemini_synthesis(messages)
+
+        system_parts: List[str] = []
+        contents: List[gemini_types.Content] = []
+
+        for msg in messages:
+            role = msg.get("role")
+            if role == "system":
+                content = msg.get("content")
+                if content:
+                    system_parts.append(str(content))
+                continue
+
+            if role == "user":
+                text = msg.get("content")
+                if text:
+                    contents.append(
+                        gemini_types.Content(
+                            role="user",
+                            parts=[gemini_types.Part.from_text(text=str(text))],
+                        )
+                    )
+                continue
+
+            if role == "assistant":
+                assistant_parts = []
+                content = msg.get("content")
+                if content:
+                    assistant_parts.append(gemini_types.Part.from_text(text=str(content)))
+
+                for tool_call in msg.get("tool_calls", []) or []:
+                    gemini_part = getattr(tool_call, "_gemini_part", None)
+                    if gemini_part is not None:
+                        assistant_parts.append(gemini_part)
+                        continue
+
+                    function = getattr(tool_call, "function", None)
+                    if function is None and isinstance(tool_call, dict):
+                        function = tool_call.get("function")
+
+                    if function is None:
+                        continue
+
+                    name = getattr(function, "name", None) or function.get("name")
+                    arguments = getattr(function, "arguments", None) or function.get("arguments", "{}")
+                    if not name:
+                        continue
+
+                    try:
+                        parsed_args = json.loads(arguments) if isinstance(arguments, str) else (arguments or {})
+                    except json.JSONDecodeError:
+                        parsed_args = {}
+
+                    assistant_parts.append(
+                        gemini_types.Part.from_function_call(name=name, args=parsed_args)
+                    )
+
+                if assistant_parts:
+                    contents.append(gemini_types.Content(role="model", parts=assistant_parts))
+                continue
+
+            if role == "tool":
+                tool_name = msg.get("name")
+                if not tool_name:
+                    continue
+                tool_content = msg.get("content", "")
+                contents.append(
+                    gemini_types.Content(
+                        role="user",
+                        parts=[
+                            gemini_types.Part.from_function_response(
+                                name=tool_name,
+                                response={"result": str(tool_content)},
+                            )
+                        ],
+                    )
+                )
+
+        config_kwargs: Dict[str, Any] = {
+            "temperature": self.temperature,
+            "automaticFunctionCalling": gemini_types.AutomaticFunctionCallingConfig(disable=True),
+        }
+        if system_parts:
+            config_kwargs["systemInstruction"] = "\n\n".join(system_parts)
+
+        gemini_tools = self._convert_tools_to_gemini(tools)
+        if gemini_tools:
+            config_kwargs["tools"] = gemini_tools
+
+        response = await asyncio.to_thread(
+            self.client.models.generate_content,
+            model=self.model,
+            contents=contents or "",
+            config=gemini_types.GenerateContentConfig(**config_kwargs),
+        )
+        return self._normalize_gemini_response(response)
+
+    async def _invoke_gemini_synthesis(self, messages):
+        system_parts: List[str] = []
+        contents: List[gemini_types.Content] = []
+        tool_summaries: List[str] = []
+
+        for msg in messages:
+            role = msg.get("role")
+            if role == "system":
+                content = msg.get("content")
+                if content:
+                    system_parts.append(str(content))
+                continue
+
+            if role == "user":
+                content = msg.get("content")
+                if content:
+                    contents.append(
+                        gemini_types.Content(
+                            role="user",
+                            parts=[gemini_types.Part.from_text(text=str(content))],
+                        )
+                    )
+                continue
+
+            if role == "tool":
+                tool_summaries.append(
+                    f"Tool `{msg.get('name', 'unknown')}` returned:\n{msg.get('content', '')}"
+                )
+
+        if tool_summaries:
+            contents.append(
+                gemini_types.Content(
+                    role="user",
+                    parts=[
+                        gemini_types.Part.from_text(
+                            text=(
+                                "Use only the following tool results to answer the user's question. "
+                                "If they contain no relevant documents, say so clearly.\n\n"
+                                + "\n\n".join(tool_summaries)
+                            )
+                        )
+                    ],
+                )
+            )
+
+        config_kwargs: Dict[str, Any] = {
+            "temperature": self.temperature,
+            "automaticFunctionCalling": gemini_types.AutomaticFunctionCallingConfig(disable=True),
+        }
+        if system_parts:
+            config_kwargs["systemInstruction"] = "\n\n".join(system_parts)
+
+        response = await asyncio.to_thread(
+            self.client.models.generate_content,
+            model=self.model,
+            contents=contents or "",
+            config=gemini_types.GenerateContentConfig(**config_kwargs),
+        )
+        return self._normalize_gemini_response(response)
+
+    def _convert_tools_to_gemini(self, tools: Optional[List]) -> Optional[List[gemini_types.Tool]]:
+        if not tools:
+            return None
+
+        function_declarations = []
+        for tool in tools:
+            if not isinstance(tool, dict) or tool.get("type") != "function":
+                continue
+
+            function = tool.get("function", {})
+            name = function.get("name")
+            if not name:
+                continue
+
+            function_declarations.append(
+                gemini_types.FunctionDeclaration(
+                    name=name,
+                    description=function.get("description", ""),
+                    parametersJsonSchema=function.get("parameters") or {
+                        "type": "object",
+                        "properties": {},
+                    },
+                )
+            )
+
+        if not function_declarations:
+            return None
+
+        return [gemini_types.Tool(functionDeclarations=function_declarations)]
+
+    def _normalize_gemini_response(self, response: Any) -> SimpleResponse:
+        content = None
+        tool_calls: List[SimpleToolCall] = []
+
+        candidate_content = None
+        if getattr(response, "candidates", None):
+            candidate_content = response.candidates[0].content
+
+        if candidate_content and getattr(candidate_content, "parts", None):
+            text_parts: List[str] = []
+            for part in candidate_content.parts:
+                text = getattr(part, "text", None)
+                if text:
+                    text_parts.append(text)
+
+                function_call = getattr(part, "function_call", None) or getattr(part, "functionCall", None)
+                if function_call is None:
+                    continue
+
+                tool_calls.append(
+                    SimpleToolCall(
+                        name=function_call.name,
+                        arguments=json.dumps(dict(function_call.args or {})),
+                        tool_call_id=getattr(function_call, "id", None),
+                        gemini_part=part,
+                    )
+                )
+
+            if text_parts:
+                content = "".join(text_parts)
+
+        return SimpleResponse([SimpleChoice(SimpleMessage(content=content, tool_calls=tool_calls))])
     
     async def _invoke_anthropic(self, messages, tools):
         """Invoke Anthropic API"""

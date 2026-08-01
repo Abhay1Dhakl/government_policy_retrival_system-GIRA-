@@ -1,7 +1,7 @@
 """
 Government Information Retrieval System (GIRS) - Gemini API Embeddings
 
-Uses Google Gemini's text-embedding-004 model for generating embeddings.
+Uses Google Gemini embedding models for generating embeddings.
 """
 
 import os
@@ -12,6 +12,7 @@ from google.genai import types
 
 # Initialize Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 _client = None
 
 def initialize_gemini():
@@ -49,7 +50,7 @@ def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> Op
     
     try:
         result = _client.models.embed_content(
-            model="text-embedding-004",
+            model=GEMINI_EMBEDDING_MODEL,
             contents=text,
             config=types.EmbedContentConfig(
                 task_type=task_type,

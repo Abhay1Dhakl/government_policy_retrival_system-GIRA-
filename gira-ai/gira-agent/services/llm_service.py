@@ -9,6 +9,8 @@ load_dotenv()
 # Environment variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -32,6 +34,11 @@ LLM_CONFIGS = {
         "provider": "openai",
         "model": "gpt-3.5-turbo", 
         "description": "OpenAI GPT-3.5 Turbo - Fast and cost-effective"
+    },
+    "gemini-flash": {
+        "provider": "gemini",
+        "model": GEMINI_MODEL,
+        "description": "Google Gemini Flash - Fast policy assistant fallback"
     },
     
     # Anthropic Models
@@ -138,13 +145,48 @@ def choose_llm(llm_option: str, temperature: float = 0.01):
     Raises:
         ValueError: If unsupported LLM option or missing API keys
     """
-    provider = llm_option
+    normalized_option = {
+        "chatgpt": "gpt-4o",
+        "openai": "gpt-4o",
+        "gemini": "gemini-flash",
+        "claude": "claude-3.5-sonnet",
+        "anthropic": "claude-3.5-sonnet",
+        "llama": "llama3.1-8b",
+        "grok": "gpt-4o",
+    }.get(llm_option, llm_option)
+
+    llm_config = LLM_CONFIGS.get(normalized_option)
+    if llm_config:
+        provider = llm_config["provider"]
+        model = llm_config["model"]
+    else:
+        # Backward compatibility for callers that still pass a provider name.
+        provider = normalized_option
+        model = "gpt-4o"
+
     print(f"LLM Provider: {provider}")
-    model = "gpt-4o"
     
     try:
+        if provider == "gemini":
+            if not GEMINI_API_KEY:
+                raise ValueError("GEMINI_API_KEY environment variable is required for Gemini models")
+
+            return SimpleLLM(
+                provider="gemini",
+                model=model,
+                api_key=GEMINI_API_KEY,
+                temperature=temperature,
+            )
+
         if provider == "openai":
             if not OPENAI_API_KEY:
+                if GEMINI_API_KEY:
+                    return SimpleLLM(
+                        provider="gemini",
+                        model=GEMINI_MODEL,
+                        api_key=GEMINI_API_KEY,
+                        temperature=temperature,
+                    )
                 raise ValueError("OPENAI_API_KEY environment variable is required for OpenAI models")
             
             return SimpleLLM(
@@ -218,7 +260,7 @@ def choose_llm(llm_option: str, temperature: float = 0.01):
             raise ValueError(f"Unsupported provider: {provider}")
             
     except Exception as e:
-        raise ValueError(f"Failed to initialize {llm_option}: {str(e)}")
+        raise ValueError(f"Failed to initialize {normalized_option}: {str(e)}")
 
 def validate_llm_setup(llm_option: str) -> Dict[str, Union[bool, str]]:
     """

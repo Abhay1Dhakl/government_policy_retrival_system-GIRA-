@@ -49,7 +49,7 @@ export const llmOptions: LLMOption[] = [
   {
     id: 'chatgpt',
     label: 'ChatGPT',
-    selected: true,
+    selected: false,
     apiName: 'openai'
   },
   {
@@ -67,7 +67,7 @@ export const llmOptions: LLMOption[] = [
   {
     id: 'gemini',
     label: 'Gemini',
-    selected: false,
+    selected: true,
     apiName: 'gemini'
   },
   {

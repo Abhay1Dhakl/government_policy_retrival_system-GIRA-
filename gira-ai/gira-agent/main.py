@@ -82,12 +82,31 @@ app.add_middleware(RequestLoggingMiddleware)
 # Setup exception handlers
 setup_exception_handlers(app)
 
-# Initialize Pinecone with settings (SECURITY FIX - no more hardcoded key!)
+# Initialize Pinecone with settings.
+# Newer Pinecone clients no longer accept the legacy `environment` keyword.
 logger.info("Initializing Pinecone...")
-pc = Pinecone(
-    api_key=settings.PINECONE_API_KEY,
-    environment=settings.PINECONE_ENVIRONMENT
-)
+
+
+def create_pinecone_client() -> Pinecone:
+    base_kwargs = {"api_key": settings.PINECONE_API_KEY}
+
+    if settings.PINECONE_ENVIRONMENT:
+        try:
+            return Pinecone(
+                **base_kwargs,
+                environment=settings.PINECONE_ENVIRONMENT,
+            )
+        except TypeError as exc:
+            if "unexpected keyword arguments" not in str(exc) or "environment" not in str(exc):
+                raise
+            logger.warning(
+                "Installed Pinecone client does not accept `environment`; retrying without it"
+            )
+
+    return Pinecone(**base_kwargs)
+
+
+pc = create_pinecone_client()
 
 combined_vector_to_upsert = []
 # Create a dense index with integrated embedding

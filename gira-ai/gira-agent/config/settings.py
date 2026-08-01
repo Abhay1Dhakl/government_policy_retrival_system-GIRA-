@@ -16,6 +16,8 @@ class Settings:
     # ========== API Keys ==========
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "")
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
     ANTHROPIC_API_KEY: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
     MISTRAL_API_KEY: Optional[str] = os.getenv("MISTRAL_API_KEY")
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
@@ -102,9 +104,9 @@ class Settings:
         """Validate critical settings and return list of errors"""
         errors = []
         
-        if not self.OPENAI_API_KEY:
-            errors.append("OPENAI_API_KEY is not set")
-        if not self.OPENAI_BASE_URL:
+        if not self.OPENAI_API_KEY and not self.GEMINI_API_KEY:
+            errors.append("At least one LLM API key must be set (OPENAI_API_KEY or GEMINI_API_KEY)")
+        if self.OPENAI_API_KEY and not self.OPENAI_BASE_URL:
             errors.append("OPENAI_BASE_URL is not set")
         if not self.PINECONE_API_KEY:
             errors.append("PINECONE_API_KEY is not set")

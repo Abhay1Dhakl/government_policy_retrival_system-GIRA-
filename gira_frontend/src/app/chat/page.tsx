@@ -72,7 +72,7 @@ export default function ChatPage() {
   })
   const [selectedLlm, setSelectedLlm] = useState<string>(() => {
     const defaultLlm = llmOptions.find((option) => option.selected)
-    return defaultLlm?.apiName || "openai"
+    return defaultLlm?.apiName || "gemini"
   })
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false)
