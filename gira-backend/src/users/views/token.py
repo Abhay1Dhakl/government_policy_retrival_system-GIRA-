@@ -22,6 +22,23 @@ from ..serializers.token import (
 from ..models import User
 
 
+def _first_error_message(errors: Any) -> str:
+    if isinstance(errors, dict):
+        for value in errors.values():
+            message = _first_error_message(value)
+            if message:
+                return message
+    elif isinstance(errors, (list, tuple)):
+        for value in errors:
+            message = _first_error_message(value)
+            if message:
+                return message
+    elif errors:
+        return str(errors)
+
+    return ""
+
+
 class TokenViewSet(GenericViewSet):
     serializer_class = UserTokenSerializer
     queryset = User.objects.all()
@@ -39,7 +56,7 @@ class TokenViewSet(GenericViewSet):
         if not serializer.is_valid():
             return api_response(
                 data=serializer.errors,
-                message="Invalid data",
+                message=_first_error_message(serializer.errors) or "Invalid data",
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 

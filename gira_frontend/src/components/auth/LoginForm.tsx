@@ -170,9 +170,9 @@ export default function LoginForm({
           </form>
 
           <div className="text-center mt-6">
-            <a href="#" className="text-sm text-gray-600 hover:text-blue-600">
-              Forgot password?
-            </a>
+            <Link href="/create-password" className="text-sm text-gray-600 hover:text-blue-600">
+              Set password
+            </Link>
           </div>
 
           <div className="text-center mt-4">

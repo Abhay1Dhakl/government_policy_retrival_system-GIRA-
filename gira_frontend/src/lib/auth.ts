@@ -26,6 +26,53 @@ const TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const HAS_DETAILS_KEY = 'has_details';
 
+const extractApiErrorMessage = (payload: unknown): string | null => {
+  if (!payload) {
+    return null;
+  }
+
+  if (typeof payload === 'string') {
+    return payload;
+  }
+
+  if (Array.isArray(payload)) {
+    for (const item of payload) {
+      const message = extractApiErrorMessage(item);
+      if (message) {
+        return message;
+      }
+    }
+    return null;
+  }
+
+  if (typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+
+    for (const key of ['message', 'detail', 'error']) {
+      const value = record[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value;
+      }
+    }
+
+    for (const key of ['errors', 'data']) {
+      const message = extractApiErrorMessage(record[key]);
+      if (message) {
+        return message;
+      }
+    }
+
+    for (const value of Object.values(record)) {
+      const message = extractApiErrorMessage(value);
+      if (message) {
+        return message;
+      }
+    }
+  }
+
+  return null;
+};
+
 export const authService = {
   /**
    * Login user with email and password
@@ -41,8 +88,16 @@ export const authService = {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        let errorMessage = 'Login failed';
+
+        try {
+          const error = await response.json();
+          errorMessage = extractApiErrorMessage(error) || errorMessage;
+        } catch {
+          errorMessage = `Login failed (${response.status})`;
+        }
+
+        throw new Error(errorMessage);
       }
 
       return await response.json();
@@ -96,7 +151,7 @@ export const authService = {
             errorMessage += ': ' + JSON.stringify(error.errors);
           }
           console.error('Registration error (JSON):', error);
-        } catch (e) {
+        } catch {
           const text = await response.text();
           console.error('Registration error (Non-JSON):', text.substring(0, 500)); // Log first 500 chars
           errorMessage = `Server Error (${response.status}): ${response.statusText}`;
@@ -108,6 +163,26 @@ export const authService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Create a password for an existing account
+   */
+  createPassword: async (data: { email: string; password: string }): Promise<AuthResponse> => {
+    const response = await fetch('/api/auth/create-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(extractApiErrorMessage(error) || 'Password creation failed');
+    }
+
+    return await response.json();
   },
 
   /**
@@ -176,9 +251,16 @@ export const authService = {
   },
 
   /**
+   * Check whether the user profile is already completed
+   */
+  isProfileCompleted: (): boolean => {
+    return authService.getHasDetails();
+  },
+
+  /**
    * Get Authorization header
    */
-  getAuthHeader: (): { Authorization: string } | {} => {
+  getAuthHeader: (): Partial<Record<'Authorization', string>> => {
     const token = authService.getToken();
     if (token) {
       return { Authorization: `Bearer ${token}` };

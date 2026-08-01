@@ -258,7 +258,7 @@ services:
       dockerfile: Dockerfile
     container_name: gira-frontend
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
       # - NEXT_PUBLIC_API_BASE_URL=http://gira-backend:8082/api/v1
       # - NEXT_PUBLIC_CHAT_API_BASE_URL=http://localhost:8081
